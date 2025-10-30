@@ -3,17 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#121212" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Flashcards">
   <title>Flashcards</title>
+
+  <!-- Иконки для PWA -->
+  <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzAwN0FGRiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkY8L3RleHQ+PC9zdmc+">
+  <link rel="apple-touch-icon" sizes="192x192" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzAwN0FGRiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkY8L3RleHQ+PC9zdmc+">
+
   <style>
+    /* === ТЕМЫ === */
+    :root {
+      --bg-body: #121212;
+      --bg-card: #1e1e1e;
+      --bg-input: #2a2a2a;
+      --text-primary: #ffffff;
+      --text-secondary: #bbbbbb;
+      --border-color: #444;
+      --shadow: rgba(0,0,0,0.4);
+    }
+
+    .theme-light {
+      --bg-body: #f8f9fa;
+      --bg-card: #ffffff;
+      --bg-input: #ffffff;
+      --text-primary: #000000;
+      --text-secondary: #444444;
+      --border-color: #ddd;
+      --shadow: rgba(0,0,0,0.1);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-primary);
     }
 
     body {
-      background: #f8f9fa;
+      background: var(--bg-body);
       padding: 8px;
       height: 100vh;
       overflow: hidden;
@@ -45,21 +76,23 @@
     }
 
     #input-section {
-      background: white;
+      background: var(--bg-input);
       padding: 10px;
       border-radius: 10px;
       margin-bottom: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 5px var(--shadow);
     }
 
     #input-section textarea {
       width: 100%;
       height: 70px;
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border-color);
       border-radius: 6px;
       resize: vertical;
       font-size: 13px;
+      background: var(--bg-input);
+      color: var(--text-primary);
     }
 
     #flashcard-container {
@@ -101,11 +134,13 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 16px;
       text-align: center;
       overflow-y: auto;
       border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px var(--shadow);
+      background: var(--bg-card);
+      /* Адаптивные отступы */
+      padding: clamp(16px, 5vw, 40px) clamp(16px, 5vw, 40px);
       line-height: 1.4;
     }
 
@@ -113,23 +148,13 @@
       transform: rotateY(180deg);
     }
 
-    /* Анимации пролистывания */
-    .slide-enter {
-      animation: slideIn 0.4s forwards;
-    }
-    .slide-exit {
-      animation: slideOut 0.4s forwards;
-    }
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(-100%); opacity: 0; }
-    }
+    /* Анимации */
+    .slide-enter { animation: slideIn 0.4s forwards; }
+    .slide-exit { animation: slideOut 0.4s forwards; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
 
-    /* === ВЫПАДАЮЩЕЕ МЕНЮ НАСТРОЕК === */
+    /* Выпадающее меню */
     .settings-dropdown {
       position: relative;
       display: inline-block;
@@ -153,15 +178,16 @@
       position: absolute;
       top: 100%;
       left: 0;
-      background: white;
+      background: var(--bg-input);
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px var(--shadow);
       padding: 16px;
       z-index: 1000;
       width: 320px;
       max-height: 70vh;
       overflow-y: auto;
       margin-top: 6px;
+      color: var(--text-primary);
     }
 
     .settings-dropdown-content.show {
@@ -174,43 +200,42 @@
       margin-bottom: 12px;
     }
 
-    .setting-item:last-child {
-      margin-bottom: 0;
-    }
+    .setting-item:last-child { margin-bottom: 0; }
 
     .setting-item label {
       font-size: 13px;
       margin-bottom: 4px;
-      color: #222;
+      color: var(--text-secondary);
       font-weight: 500;
     }
 
     .setting-item input,
     .setting-item select {
       padding: 6px 8px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border-color);
       border-radius: 6px;
       font-size: 14px;
+      background: var(--bg-input);
+      color: var(--text-primary);
     }
 
-    /* === ПСЕВДО-ПОЛНОЭКРАННЫЙ РЕЖИМ === */
+    /* === FULLSCREEN — ЗАПОЛНЯЕТ ВСЁ === */
     body.pseudo-fullscreen {
       padding: 0;
       margin: 0;
       background: #000;
       overflow: hidden;
-      height: 100vh;
-      width: 100vw;
+      height: 100dvh;
+      width: 100dvw;
       position: fixed;
       top: 0;
       left: 0;
       inset: 0;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-      box-sizing: border-box;
+      z-index: 2000;
     }
 
     body.pseudo-fullscreen #input-section,
-    body.pseudo-fullscreen .settings-dropdown {
+    body.pseudo-fullscreen .top-bar {
       display: none !important;
     }
 
@@ -218,12 +243,12 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100dvw;
+      height: 100dvh;
       margin: 0;
       padding: 0;
       inset: 0;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      z-index: 10;
     }
 
     body.pseudo-fullscreen .card-wrapper {
@@ -231,20 +256,16 @@
       height: 100%;
       width: 100%;
       max-width: none;
-      position: relative;
     }
 
     body.pseudo-fullscreen .card-face {
       border-radius: 0;
       box-shadow: none;
-      padding: 24px 16px;
-      padding-top: calc(24px + env(safe-area-inset-top));
-      padding-bottom: calc(24px + env(safe-area-inset-bottom));
-      padding-left: calc(16px + env(safe-area-inset-left));
-      padding-right: calc(16px + env(safe-area-inset-right));
+      /* Без фиксированных отступов — только через clamp */
+      padding: clamp(20px, 6vw, 60px) clamp(20px, 6vw, 60px);
     }
 
-    /* === КНОПКА ВЫХОДА ИЗ FULLSCREEN === */
+    /* Кнопка выхода */
     #exit-fullscreen {
       position: fixed;
       top: calc(16px + env(safe-area-inset-top));
@@ -276,37 +297,37 @@
 
     /* Адаптив */
     @media (max-width: 600px) {
-      .card-wrapper {
-        max-height: 220px;
-      }
-      .settings-dropdown-content {
-        width: 280px;
-        max-height: 60vh;
-      }
+      .card-wrapper { max-height: 220px; }
+      .settings-dropdown-content { width: 280px; max-height: 60vh; }
     }
 
     @media (min-height: 700px) and (min-width: 768px) {
-      .card-wrapper {
-        max-height: 350px;
-      }
+      .card-wrapper { max-height: 350px; }
     }
   </style>
 </head>
-<body>
+<body class="theme-dark">
   <button id="exit-fullscreen">×</button>
 
   <div class="top-bar">
     <button id="btn-fullscreen">На весь экран</button>
     <button id="btn-parse">Загрузить карточки</button>
+    <button id="btn-clear">Очистить</button>
     <button id="btn-manual" class="active">Ручной</button>
     <button id="btn-auto">Авто</button>
 
-    <!-- Выпадающее меню настроек -->
     <div class="settings-dropdown">
       <button class="settings-dropdown-btn" id="toggle-settings">
         ⚙️ Настройки
       </button>
       <div class="settings-dropdown-content" id="settings-body">
+        <div class="setting-item">
+          <label>Тема</label>
+          <select id="theme-select">
+            <option value="dark">Тёмная</option>
+            <option value="light">Светлая</option>
+          </select>
+        </div>
         <div class="setting-item">
           <label>Шрифт (лицо)</label>
           <select id="font-family-front">
@@ -330,11 +351,11 @@
         </div>
         <div class="setting-item">
           <label>Цвет текста (лицо)</label>
-          <input type="color" id="color-text-front" value="#000000" />
+          <input type="color" id="color-text-front" value="#ffffff" />
         </div>
         <div class="setting-item">
           <label>Фон (лицо)</label>
-          <input type="color" id="color-bg-front" value="#ffffff" />
+          <input type="color" id="color-bg-front" value="#1e1e1e" />
         </div>
 
         <div class="setting-item">
@@ -360,11 +381,11 @@
         </div>
         <div class="setting-item">
           <label>Цвет текста (оборот)</label>
-          <input type="color" id="color-text-back" value="#000000" />
+          <input type="color" id="color-text-back" value="#ffffff" />
         </div>
         <div class="setting-item">
           <label>Фон (оборот)</label>
-          <input type="color" id="color-bg-back" value="#f0f8ff" />
+          <input type="color" id="color-bg-back" value="#2a2a2a" />
         </div>
 
         <div class="setting-item">
@@ -393,6 +414,28 @@
   </div>
 
   <script>
+    // === PWA Manifest ===
+    const manifest = {
+      "name": "Flashcards",
+      "short_name": "Flashcards",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#121212",
+      "theme_color": "#121212",
+      "icons": [{
+        "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzAwN0FGRiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkY8L3RleHQ+PC9zdmc+",
+        "sizes": "192x192",
+        "type": "image/png"
+      }]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestURL;
+    document.head.appendChild(link);
+
+    // === STATE ===
     let cards = [];
     let currentIndex = 0;
     let isFlipped = false;
@@ -400,12 +443,15 @@
     let autoTimer = null;
     let flipTimer = null;
 
+    // DOM
     const inputText = document.getElementById('input-text');
     const frontEl = document.getElementById('front');
     const backEl = document.getElementById('back');
     const cardEl = document.getElementById('card');
     const btnFullscreen = document.getElementById('btn-fullscreen');
     const exitFullscreenBtn = document.getElementById('exit-fullscreen');
+    const btnClear = document.getElementById('btn-clear');
+    const themeSelect = document.getElementById('theme-select');
 
     const fontFamilyFront = document.getElementById('font-family-front');
     const fontSizeFront = document.getElementById('font-size-front');
@@ -418,30 +464,24 @@
     const timeFront = document.getElementById('time-front');
     const interval = document.getElementById('interval');
 
-    // === PARSE CARDS ===
+    // PARSE
     function parseCards(text) {
       if (!text.trim()) return [];
-      return text
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line)
-        .map(line => {
-          if (line.includes('::')) {
-            const parts = line.split('::', 2).map(s => s.trim());
-            return parts.length === 2 ? parts : [line, '?'];
-          }
-          const delims = [';', '-', '?', ','];
-          for (const d of delims) {
-            const i = line.indexOf(d);
-            if (i > 0) {
-              return [line.slice(0, i).trim(), line.slice(i + 1).trim()];
-            }
-          }
-          return [line, '?'];
-        });
+      return text.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+        if (line.includes('::')) {
+          const p = line.split('::', 2).map(s => s.trim());
+          return p.length === 2 ? p : [line, '?'];
+        }
+        const delims = [';', '-', '?', ','];
+        for (const d of delims) {
+          const i = line.indexOf(d);
+          if (i > 0) return [line.slice(0, i).trim(), line.slice(i + 1).trim()];
+        }
+        return [line, '?'];
+      });
     }
 
-    // === RENDER CARD ===
+    // RENDER
     function renderCard(direction = 'none') {
       if (cards.length === 0) {
         frontEl.textContent = 'Нет карточек';
@@ -483,18 +523,14 @@
       }
 
       resetAutoTimers();
-      if (mode === 'auto') {
-        startAutoFlip();
-      }
+      if (mode === 'auto') startAutoFlip();
     }
 
     function flipCard() {
       if (cards.length === 0) return;
       isFlipped = !isFlipped;
       cardEl.classList.toggle('flipped', isFlipped);
-      if (mode === 'auto' && isFlipped) {
-        startAutoNext();
-      }
+      if (mode === 'auto' && isFlipped) startAutoNext();
     }
 
     function nextCard() {
@@ -509,7 +545,6 @@
       renderCard('prev');
     }
 
-    // === AUTO MODE ===
     function resetAutoTimers() {
       if (flipTimer) clearTimeout(flipTimer);
       if (autoTimer) clearTimeout(autoTimer);
@@ -528,23 +563,37 @@
       autoTimer = setTimeout(nextCard, Math.max(1000, total - flip));
     }
 
-    // === APPLY SETTINGS ===
     function applySettings() {
-      const getFont = (val) =>
-        val === 'system' ? 'system-ui, -apple-system, sans-serif' : val;
-
-      frontEl.style.fontFamily = getFont(fontFamilyFront.value);
+      const sys = 'system-ui, -apple-system, sans-serif';
+      frontEl.style.fontFamily = fontFamilyFront.value === 'system' ? sys : fontFamilyFront.value;
       frontEl.style.fontSize = fontSizeFront.value + 'px';
       frontEl.style.color = colorTextFront.value;
       frontEl.style.backgroundColor = colorBgFront.value;
 
-      backEl.style.fontFamily = getFont(fontFamilyBack.value);
+      backEl.style.fontFamily = fontFamilyBack.value === 'system' ? sys : fontFamilyBack.value;
       backEl.style.fontSize = fontSizeBack.value + 'px';
       backEl.style.color = colorTextBack.value;
       backEl.style.backgroundColor = colorBgBack.value;
     }
 
-    // === ПСЕВДО-FULLSCREEN ===
+    function setTheme(theme) {
+      document.body.className = theme === 'light' ? 'theme-light' : 'theme-dark';
+      // Обновляем цвета по умолчанию при смене темы
+      if (theme === 'light') {
+        colorTextFront.value = '#000000';
+        colorBgFront.value = '#ffffff';
+        colorTextBack.value = '#000000';
+        colorBgBack.value = '#f8f9fa';
+      } else {
+        colorTextFront.value = '#ffffff';
+        colorBgFront.value = '#1e1e1e';
+        colorTextBack.value = '#ffffff';
+        colorBgBack.value = '#2a2a2a';
+      }
+      applySettings();
+    }
+
+    // Fullscreen
     function enterPseudoFullscreen() {
       document.body.classList.add('pseudo-fullscreen');
     }
@@ -553,7 +602,23 @@
       document.body.classList.remove('pseudo-fullscreen');
     }
 
-    // === EVENT LISTENERS ===
+    // Копирование
+    function copyCardText() {
+      if (cards.length === 0) return;
+      const text = isFlipped ? cards[currentIndex][1] : cards[currentIndex][0];
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).catch(console.error);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+    }
+
+    // Слушатели
     btnFullscreen.addEventListener('click', enterPseudoFullscreen);
     exitFullscreenBtn.addEventListener('click', exitPseudoFullscreen);
 
@@ -563,9 +628,20 @@
       renderCard();
     });
 
+    btnClear.addEventListener('click', () => {
+      inputText.value = '';
+      cards = [];
+      frontEl.textContent = 'Нет карточек';
+      backEl.textContent = '—';
+      isFlipped = false;
+      cardEl.classList.remove('flipped');
+    });
+
     cardEl.addEventListener('click', () => {
       if (document.body.classList.contains('pseudo-fullscreen')) {
         flipCard();
+      } else {
+        copyCardText();
       }
     });
 
@@ -591,7 +667,6 @@
       document.getElementById('btn-manual').classList.remove('active');
     });
 
-    // Закрытие меню при клике вне его
     document.addEventListener('click', (e) => {
       const dropdown = document.getElementById('settings-body');
       const button = document.getElementById('toggle-settings');
@@ -600,13 +675,15 @@
       }
     });
 
-    // Переключение меню
     document.getElementById('toggle-settings').addEventListener('click', (e) => {
       e.stopPropagation();
       document.getElementById('settings-body').classList.toggle('show');
     });
 
-    // Применение настроек
+    themeSelect.addEventListener('change', () => {
+      setTheme(themeSelect.value);
+    });
+
     [fontFamilyFront, fontSizeFront, colorTextFront, colorBgFront,
      fontFamilyBack, fontSizeBack, colorTextBack, colorBgBack,
      timeFront, interval].forEach(el => {
@@ -614,7 +691,7 @@
     });
 
     // INIT
-    applySettings();
+    setTheme('dark'); // начальная тема
   </script>
 </body>
 </html>
