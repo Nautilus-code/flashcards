@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Flashcards</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: #f8f9fa;
+      padding: 8px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      padding: 5px 10px;
+      font-size: 13px;
+      border: none;
+      border-radius: 8px;
+      background: #007AFF;
+      color: white;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button.active {
+      background: #0055c8;
+    }
+
+    #input-section {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    }
+
+    #input-section textarea {
+      width: 100%;
+      height: 70px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 13px;
+    }
+
+    #flashcard-container {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      perspective: 1000px;
+      margin-bottom: 8px;
+    }
+
+    .card-wrapper {
+      width: 100%;
+      max-width: 500px;
+      height: 100%;
+      max-height: 300px;
+      position: relative;
+    }
+
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      text-align: center;
+      overflow-y: auto;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      line-height: 1.4;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Анимации пролистывания */
+    .slide-enter {
+      animation: slideIn 0.4s forwards;
+    }
+    .slide-exit {
+      animation: slideOut 0.4s forwards;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(-100%); opacity: 0; }
+    }
+
+    /* === ВЫПАДАЮЩЕЕ МЕНЮ НАСТРОЕК === */
+    .settings-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .settings-dropdown-btn {
+      background: #007AFF;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .settings-dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 16px;
+      z-index: 1000;
+      width: 320px;
+      max-height: 70vh;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .settings-dropdown-content.show {
+      display: block;
+    }
+
+    .setting-item {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+    }
+
+    .setting-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-item label {
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #222;
+      font-weight: 500;
+    }
+
+    .setting-item input,
+    .setting-item select {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    /* === ПСЕВДО-ПОЛНОЭКРАННЫЙ РЕЖИМ === */
+    body.pseudo-fullscreen {
+      padding: 0;
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      top: 0;
+      left: 0;
+      inset: 0;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      box-sizing: border-box;
+    }
+
+    body.pseudo-fullscreen #input-section,
+    body.pseudo-fullscreen .settings-dropdown {
+      display: none !important;
+    }
+
+    body.pseudo-fullscreen #flashcard-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      inset: 0;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    body.pseudo-fullscreen .card-wrapper {
+      max-height: none;
+      height: 100%;
+      width: 100%;
+      max-width: none;
+      position: relative;
+    }
+
+    body.pseudo-fullscreen .card-face {
+      border-radius: 0;
+      box-shadow: none;
+      padding: 24px 16px;
+      padding-top: calc(24px + env(safe-area-inset-top));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      padding-left: calc(16px + env(safe-area-inset-left));
+      padding-right: calc(16px + env(safe-area-inset-right));
+    }
+
+    /* === КНОПКА ВЫХОДА ИЗ FULLSCREEN === */
+    #exit-fullscreen {
+      position: fixed;
+      top: calc(16px + env(safe-area-inset-top));
+      right: calc(16px + env(safe-area-inset-right));
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(30, 30, 30, 0.6);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      font-size: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    #exit-fullscreen:hover {
+      background: rgba(50, 50, 50, 0.7);
+      transform: scale(1.05);
+    }
+
+    body.pseudo-fullscreen #exit-fullscreen {
+      display: flex;
+    }
+
+    /* Адаптив */
+    @media (max-width: 600px) {
+      .card-wrapper {
+        max-height: 220px;
+      }
+      .settings-dropdown-content {
+        width: 280px;
+        max-height: 60vh;
+      }
+    }
+
+    @media (min-height: 700px) and (min-width: 768px) {
+      .card-wrapper {
+        max-height: 350px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button id="exit-fullscreen">×</button>
+
+  <div class="top-bar">
+    <button id="btn-fullscreen">На весь экран</button>
+    <button id="btn-parse">Загрузить карточки</button>
+    <button id="btn-manual" class="active">Ручной</button>
+    <button id="btn-auto">Авто</button>
+
+    <!-- Выпадающее меню настроек -->
+    <div class="settings-dropdown">
+      <button class="settings-dropdown-btn" id="toggle-settings">
+        ⚙️ Настройки
+      </button>
+      <div class="settings-dropdown-content" id="settings-body">
+        <div class="setting-item">
+          <label>Шрифт (лицо)</label>
+          <select id="font-family-front">
+            <option value="system">Системный</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+            <option value="'Courier New', monospace">Courier New</option>
+            <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+            <option value="'Georgia', serif">Georgia</option>
+            <option value="'Verdana', sans-serif">Verdana</option>
+            <option value="'Tahoma', sans-serif">Tahoma</option>
+            <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+            <option value="'Palatino', serif">Palatino</option>
+            <option value="'Garamond', serif">Garamond</option>
+            <option value="'Brush Script MT', cursive">Brush Script</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>Размер (лицо)</label>
+          <input type="range" id="font-size-front" min="14" max="120" value="28" />
+        </div>
+        <div class="setting-item">
+          <label>Цвет текста (лицо)</label>
+          <input type="color" id="color-text-front" value="#000000" />
+        </div>
+        <div class="setting-item">
+          <label>Фон (лицо)</label>
+          <input type="color" id="color-bg-front" value="#ffffff" />
+        </div>
+
+        <div class="setting-item">
+          <label>Шрифт (оборот)</label>
+          <select id="font-family-back">
+            <option value="system">Системный</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+            <option value="'Courier New', monospace">Courier New</option>
+            <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+            <option value="'Georgia', serif">Georgia</option>
+            <option value="'Verdana', sans-serif">Verdana</option>
+            <option value="'Tahoma', sans-serif">Tahoma</option>
+            <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+            <option value="'Palatino', serif">Palatino</option>
+            <option value="'Garamond', serif">Garamond</option>
+            <option value="'Brush Script MT', cursive">Brush Script</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>Размер (оборот)</label>
+          <input type="range" id="font-size-back" min="14" max="120" value="28" />
+        </div>
+        <div class="setting-item">
+          <label>Цвет текста (оборот)</label>
+          <input type="color" id="color-text-back" value="#000000" />
+        </div>
+        <div class="setting-item">
+          <label>Фон (оборот)</label>
+          <input type="color" id="color-bg-back" value="#f0f8ff" />
+        </div>
+
+        <div class="setting-item">
+          <label>Авто: время до ответа (сек)</label>
+          <input type="number" id="time-front" min="1" max="30" value="3" />
+        </div>
+        <div class="setting-item">
+          <label>Авто: интервал (сек)</label>
+          <input type="number" id="interval" min="2" max="60" value="6" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="input-section">
+    <textarea id="input-text" placeholder="Вставьте карточки. Пример: Привет :: Hello&#10;Как дела? :: How are you?"></textarea>
+  </div>
+
+  <div id="flashcard-container">
+    <div class="card-wrapper">
+      <div class="card" id="card">
+        <div class="card-face card-front" id="front">Нажмите "Загрузить карточки"</div>
+        <div class="card-face card-back" id="back">—</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let cards = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let mode = 'manual';
+    let autoTimer = null;
+    let flipTimer = null;
+
+    const inputText = document.getElementById('input-text');
+    const frontEl = document.getElementById('front');
+    const backEl = document.getElementById('back');
+    const cardEl = document.getElementById('card');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    const exitFullscreenBtn = document.getElementById('exit-fullscreen');
+
+    const fontFamilyFront = document.getElementById('font-family-front');
+    const fontSizeFront = document.getElementById('font-size-front');
+    const colorTextFront = document.getElementById('color-text-front');
+    const colorBgFront = document.getElementById('color-bg-front');
+    const fontFamilyBack = document.getElementById('font-family-back');
+    const fontSizeBack = document.getElementById('font-size-back');
+    const colorTextBack = document.getElementById('color-text-back');
+    const colorBgBack = document.getElementById('color-bg-back');
+    const timeFront = document.getElementById('time-front');
+    const interval = document.getElementById('interval');
+
+    // === PARSE CARDS ===
+    function parseCards(text) {
+      if (!text.trim()) return [];
+      return text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line)
+        .map(line => {
+          if (line.includes('::')) {
+            const parts = line.split('::', 2).map(s => s.trim());
+            return parts.length === 2 ? parts : [line, '?'];
+          }
+          const delims = [';', '-', '?', ','];
+          for (const d of delims) {
+            const i = line.indexOf(d);
+            if (i > 0) {
+              return [line.slice(0, i).trim(), line.slice(i + 1).trim()];
+            }
+          }
+          return [line, '?'];
+        });
+    }
+
+    // === RENDER CARD ===
+    function renderCard(direction = 'none') {
+      if (cards.length === 0) {
+        frontEl.textContent = 'Нет карточек';
+        backEl.textContent = '—';
+        return;
+      }
+
+      const [front, back] = cards[currentIndex];
+      isFlipped = false;
+      cardEl.classList.remove('flipped');
+
+      if (direction === 'next') {
+        cardEl.classList.remove('slide-enter', 'slide-exit');
+        void cardEl.offsetWidth;
+        cardEl.classList.add('slide-exit');
+        setTimeout(() => {
+          frontEl.textContent = front;
+          backEl.textContent = back;
+          cardEl.classList.remove('slide-exit');
+          cardEl.classList.add('slide-enter');
+          setTimeout(() => cardEl.classList.remove('slide-enter'), 400);
+        }, 400);
+      } else if (direction === 'prev') {
+        cardEl.style.transform = 'translateX(-100%)';
+        cardEl.style.opacity = '0';
+        setTimeout(() => {
+          frontEl.textContent = front;
+          backEl.textContent = back;
+          cardEl.style.transform = 'translateX(100%)';
+          cardEl.style.opacity = '0';
+          setTimeout(() => {
+            cardEl.style.transform = 'translateX(0)';
+            cardEl.style.opacity = '1';
+          }, 10);
+        }, 10);
+      } else {
+        frontEl.textContent = front;
+        backEl.textContent = back;
+      }
+
+      resetAutoTimers();
+      if (mode === 'auto') {
+        startAutoFlip();
+      }
+    }
+
+    function flipCard() {
+      if (cards.length === 0) return;
+      isFlipped = !isFlipped;
+      cardEl.classList.toggle('flipped', isFlipped);
+      if (mode === 'auto' && isFlipped) {
+        startAutoNext();
+      }
+    }
+
+    function nextCard() {
+      if (cards.length === 0) return;
+      currentIndex = (currentIndex + 1) % cards.length;
+      renderCard('next');
+    }
+
+    function prevCard() {
+      if (cards.length === 0) return;
+      currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+      renderCard('prev');
+    }
+
+    // === AUTO MODE ===
+    function resetAutoTimers() {
+      if (flipTimer) clearTimeout(flipTimer);
+      if (autoTimer) clearTimeout(autoTimer);
+    }
+
+    function startAutoFlip() {
+      resetAutoTimers();
+      flipTimer = setTimeout(() => {
+        if (!isFlipped) flipCard();
+      }, parseInt(timeFront.value) * 1000);
+    }
+
+    function startAutoNext() {
+      const total = parseInt(interval.value) * 1000;
+      const flip = parseInt(timeFront.value) * 1000;
+      autoTimer = setTimeout(nextCard, Math.max(1000, total - flip));
+    }
+
+    // === APPLY SETTINGS ===
+    function applySettings() {
+      const getFont = (val) =>
+        val === 'system' ? 'system-ui, -apple-system, sans-serif' : val;
+
+      frontEl.style.fontFamily = getFont(fontFamilyFront.value);
+      frontEl.style.fontSize = fontSizeFront.value + 'px';
+      frontEl.style.color = colorTextFront.value;
+      frontEl.style.backgroundColor = colorBgFront.value;
+
+      backEl.style.fontFamily = getFont(fontFamilyBack.value);
+      backEl.style.fontSize = fontSizeBack.value + 'px';
+      backEl.style.color = colorTextBack.value;
+      backEl.style.backgroundColor = colorBgBack.value;
+    }
+
+    // === ПСЕВДО-FULLSCREEN ===
+    function enterPseudoFullscreen() {
+      document.body.classList.add('pseudo-fullscreen');
+    }
+
+    function exitPseudoFullscreen() {
+      document.body.classList.remove('pseudo-fullscreen');
+    }
+
+    // === EVENT LISTENERS ===
+    btnFullscreen.addEventListener('click', enterPseudoFullscreen);
+    exitFullscreenBtn.addEventListener('click', exitPseudoFullscreen);
+
+    document.getElementById('btn-parse').addEventListener('click', () => {
+      cards = parseCards(inputText.value);
+      currentIndex = 0;
+      renderCard();
+    });
+
+    cardEl.addEventListener('click', () => {
+      if (document.body.classList.contains('pseudo-fullscreen')) {
+        flipCard();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (document.body.classList.contains('pseudo-fullscreen')) {
+        if (e.key === ' ' || e.key === 'Enter') flipCard();
+        if (e.key === 'ArrowRight') nextCard();
+        if (e.key === 'ArrowLeft') prevCard();
+      }
+    });
+
+    document.getElementById('btn-manual').addEventListener('click', () => {
+      mode = 'manual';
+      resetAutoTimers();
+      document.getElementById('btn-manual').classList.add('active');
+      document.getElementById('btn-auto').classList.remove('active');
+    });
+
+    document.getElementById('btn-auto').addEventListener('click', () => {
+      mode = 'auto';
+      renderCard();
+      document.getElementById('btn-auto').classList.add('active');
+      document.getElementById('btn-manual').classList.remove('active');
+    });
+
+    // Закрытие меню при клике вне его
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('settings-body');
+      const button = document.getElementById('toggle-settings');
+      if (!dropdown.contains(e.target) && e.target !== button) {
+        dropdown.classList.remove('show');
+      }
+    });
+
+    // Переключение меню
+    document.getElementById('toggle-settings').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('settings-body').classList.toggle('show');
+    });
+
+    // Применение настроек
+    [fontFamilyFront, fontSizeFront, colorTextFront, colorBgFront,
+     fontFamilyBack, fontSizeBack, colorTextBack, colorBgBack,
+     timeFront, interval].forEach(el => {
+      el.addEventListener('input', applySettings);
+    });
+
+    // INIT
+    applySettings();
+  </script>
+</body>
+</html>
+
