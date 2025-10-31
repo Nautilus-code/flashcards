@@ -9,8 +9,8 @@
   <title>Flashcards & Quiz</title>
 
   <!-- Иконка PWA: 🎴 -->
-  <link rel="icon" type="image/svg+xml" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%23007AFF'/><text x='96' y='96' font-family='Arial' font-size='80' text-anchor='middle' dominant-baseline='middle' fill='white'>🎴</text></svg>">
-  <link rel="apple-touch-icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%23007AFF'/><text x='96' y='96' font-family='Arial' font-size='80' text-anchor='middle' dominant-baseline='middle' fill='white'>🎴</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%23007AFF'/><text x='96' y='96' font-family='Arial' font-size='80' text-anchor='middle' dominant-baseline='middle' fill='white'>🎴</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%23007AFF'/><text x='96' y='96' font-family='Arial' font-size='80' text-anchor='middle' dominant-baseline='middle' fill='white'>🎴</text></svg>">
 
   <style>
     :root {
@@ -100,9 +100,47 @@
       justify-content: center;
       align-items: center;
       margin-bottom: 8px;
+      position: relative;
     }
 
-    /* === КАРТОЧКИ === */
+    #card-progress,
+    .quiz-progress {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      position: absolute;
+      left: 0;
+      right: 0;
+      z-index: 2;
+    }
+
+    #card-progress {
+      top: -24px;
+    }
+
+    .quiz-progress {
+      top: -30px;
+    }
+
+    .fullscreen-counter {
+      position: absolute;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    #fullscreen-card-counter {
+      bottom: 20px;
+    }
+
+    #fullscreen-quiz-counter {
+      top: 20px;
+    }
+
     .card-wrapper {
       width: 100%;
       max-width: 500px;
@@ -145,13 +183,11 @@
       transform: rotateY(180deg);
     }
 
-    /* Анимации */
     .slide-enter { animation: slideIn 0.4s forwards; }
     .slide-exit { animation: slideOut 0.4s forwards; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
 
-    /* === ТЕСТ === */
     .quiz-container {
       width: 100%;
       max-width: 500px;
@@ -162,13 +198,8 @@
     .word {
       font-size: 28px;
       font-weight: bold;
-      margin: 20px 0;
-      direction: rtl;
+      margin: 12px 0;
       unicode-bidi: embed;
-    }
-
-    .word.ltr {
-      direction: ltr;
     }
 
     .options {
@@ -184,7 +215,6 @@
       }
     }
 
-    /* 🔧 ИСПРАВЛЕНО: варианты теперь подстраиваются под текст, но остаются симметричными и удобными */
     .option {
       display: inline-flex;
       align-items: center;
@@ -239,7 +269,6 @@
       display: none;
     }
 
-    /* Управление карточками */
     .card-controls {
       display: flex;
       gap: 8px;
@@ -247,7 +276,6 @@
       justify-content: center;
     }
 
-    /* Выпадающее меню */
     .settings-dropdown {
       position: relative;
       display: inline-block;
@@ -303,7 +331,8 @@
     }
 
     .setting-item input,
-    .setting-item select {
+    .setting-item select,
+    .setting-item .checkbox-group {
       padding: 6px 8px;
       border: 1px solid var(--border-color);
       border-radius: 6px;
@@ -312,7 +341,20 @@
       color: var(--text-primary);
     }
 
-    /* === FULLSCREEN ОБЩИЙ === */
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+
+    .checkbox-group input {
+      margin: 0;
+      width: auto;
+    }
+
     body.pseudo-fullscreen {
       padding: 0;
       margin: 0;
@@ -327,7 +369,11 @@
       z-index: 2000;
     }
 
-    /* 🔧 ИСПРАВЛЕНО: только контейнеры БЕЗ .fullscreen скрываются */
+    body.pseudo-fullscreen #card-progress,
+    body.pseudo-fullscreen .quiz-progress {
+      display: none !important;
+    }
+
     body.pseudo-fullscreen #input-section,
     body.pseudo-fullscreen .top-bar,
     body.pseudo-fullscreen .card-controls,
@@ -336,7 +382,6 @@
       display: none !important;
     }
 
-    /* Fullscreen для карточек */
     body.pseudo-fullscreen #flashcard-container.fullscreen {
       position: fixed;
       top: 0;
@@ -364,7 +409,6 @@
       padding: clamp(20px, 6vw, 60px) clamp(20px, 6vw, 60px);
     }
 
-    /* Fullscreen для теста */
     body.pseudo-fullscreen #quiz-container.fullscreen {
       position: fixed;
       top: 0;
@@ -391,7 +435,6 @@
       width: 100%;
     }
 
-    /* Кнопка выхода */
     #exit-fullscreen {
       position: fixed;
       top: calc(16px + env(safe-area-inset-top));
@@ -423,10 +466,58 @@
 
     .hidden { display: none; }
 
+    #format-selector {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #format-selector-content {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    #format-selector-content h3 {
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .format-option {
+      display: block;
+      padding: 10px;
+      margin: 8px 0;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .format-option:hover {
+      background: #0055c8;
+      color: white;
+    }
+
+    .format-option.selected {
+      background: #007AFF;
+      color: white;
+      border-color: #007AFF;
+    }
+
     @media (max-width: 600px) {
       .card-wrapper { max-height: 220px; }
       .settings-dropdown-content { width: 280px; max-height: 60vh; }
-      /* Убедимся, что на мобильных варианты — на всю ширину */
       .options {
         grid-template-columns: 1fr;
       }
@@ -441,11 +532,14 @@
   <button id="exit-fullscreen">×</button>
 
   <div class="top-bar">
-    <button id="btn-cards" class="active">Карточки</button>
-    <button id="btn-quiz">Тест</button>
+    <button id="btn-cards" class="active">🎴 Карточки</button>
+    <button id="btn-quiz">❓ Тест</button>
     <button id="btn-fullscreen">На весь экран</button>
-    <button id="btn-parse">Загрузить</button>
+    <button id="btn-parse">Вставить</button>
+    <button id="btn-save">Сохранить</button>
+    <button id="btn-load-file">Загрузить файл</button>
     <button id="btn-clear">Очистить</button>
+    <button id="btn-reverse">🔄 Обратно</button>
     <button id="btn-manual" class="active">Ручной</button>
     <button id="btn-auto">Авто</button>
 
@@ -461,7 +555,6 @@
             <option value="light">Светлая</option>
           </select>
         </div>
-        <!-- Лицевая сторона -->
         <div class="setting-item">
           <label>Шрифт (вопрос)</label>
           <select id="font-family-front">
@@ -491,8 +584,6 @@
           <label>Фон (вопрос)</label>
           <input type="color" id="color-bg-front" value="#1e1e1e" />
         </div>
-
-        <!-- Оборотная сторона -->
         <div class="setting-item">
           <label>Шрифт (ответы)</label>
           <select id="font-family-back">
@@ -522,8 +613,6 @@
           <label>Фон (ответы)</label>
           <input type="color" id="color-bg-back" value="#2a2a2a" />
         </div>
-
-        <!-- Авто-режим -->
         <div class="setting-item">
           <label>Авто: время до ответа (сек)</label>
           <input type="number" id="time-front" min="1" max="30" value="3" />
@@ -531,6 +620,16 @@
         <div class="setting-item">
           <label>Авто: интервал (сек)</label>
           <input type="number" id="interval" min="2" max="60" value="6" />
+        </div>
+        <div class="setting-item">
+          <label>Авто: время на ответ (сек)</label>
+          <input type="number" id="quiz-time-limit" min="5" max="120" value="15" />
+        </div>
+        <div class="setting-item">
+          <div class="checkbox-group">
+            <input type="checkbox" id="quiz-auto-reveal" />
+            <label for="quiz-auto-reveal">Авто: показывать правильный ответ</label>
+          </div>
         </div>
       </div>
     </div>
@@ -540,44 +639,107 @@
     <textarea id="input-text" placeholder="Вставьте карточки. Пример: كتاب :: книга&#10;قلم; ручка"></textarea>
   </div>
 
-  <!-- Режим карточек -->
   <div id="flashcard-container">
+    <div id="card-progress">0 / 0</div>
     <div class="card-wrapper">
       <div class="card" id="card">
-        <div class="card-face card-front" id="front">Нажмите "Загрузить"</div>
+        <div class="card-face card-front" id="front">Нажмите "Вставить"</div>
         <div class="card-face card-back" id="back">—</div>
       </div>
     </div>
+    <div id="fullscreen-card-counter" class="fullscreen-counter hidden">0 / 0</div>
   </div>
 
-  <!-- Управление карточками -->
   <div class="card-controls" id="card-controls">
     <button id="btn-prev">← Назад</button>
     <button id="btn-flip">Показать ответ</button>
     <button id="btn-next">Далее →</button>
   </div>
 
-  <!-- Режим теста -->
   <div id="quiz-container" class="hidden">
     <div class="quiz-container">
+      <div class="quiz-progress" id="quiz-progress">0 / 0</div>
       <div class="word" id="quiz-word"></div>
       <div class="options" id="quiz-options"></div>
       <div class="feedback" id="quiz-feedback"></div>
       <button class="next-btn" id="quiz-next">Следующий</button>
     </div>
+    <div id="fullscreen-quiz-counter" class="fullscreen-counter hidden">0 / 0</div>
   </div>
 
+  <div id="format-selector">
+    <div id="format-selector-content">
+      <h3>Выберите формат сохранения</h3>
+      <div class="format-option" data-format="::">word :: translation</div>
+      <div class="format-option" data-format=";">word; translation</div>
+      <div class="format-option" data-format="=">word = translation</div>
+      <div class="format-option" data-format="→">word → translation</div>
+      <div class="format-option" data-format="csv">Скачать как CSV</div>
+    </div>
+  </div>
+
+  <input type="file" id="file-input" accept=".txt,.csv" style="display:none">
+
   <script>
+    function isRTL(text) {
+      if (!text) return false;
+      const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+      return rtlRegex.test(text);
+    }
+
+    function adjustQuestionMark(text) {
+      if (!text || typeof text !== 'string') return text;
+      const clean = text.replace(/[?؟]/g, '').trim();
+      if (isRTL(text)) {
+        return `؟${clean}`;
+      } else {
+        return `${clean}?`;
+      }
+    }
+
+    function escapeCSV(str) {
+      if (str == null) return '""';
+      str = String(str).replace(/"/g, '""');
+      return `"${str}"`;
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1] || '';
+        if (char === '"' && !inQuotes) {
+          inQuotes = true;
+        } else if (char === '"' && inQuotes && nextChar === '"') {
+          current += '"';
+          i++;
+        } else if (char === '"' && inQuotes) {
+          inQuotes = false;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
     // === STATE ===
     let cards = [];
-    let mode = 'cards'; // 'cards' or 'quiz'
+    let mode = 'cards';
     let currentIndex = 0;
     let currentQuizIndex = 0;
     let isFlipped = false;
     let selectedOption = null;
-    let autoMode = 'manual'; // 'manual' or 'auto'
+    let autoMode = 'manual';
+    let reverseMode = false;
     let autoTimer = null;
     let flipTimer = null;
+    let quizTimer = null;
 
     // DOM
     const inputText = document.getElementById('input-text');
@@ -591,12 +753,22 @@
     const quizOptions = document.getElementById('quiz-options');
     const quizFeedback = document.getElementById('quiz-feedback');
     const quizNext = document.getElementById('quiz-next');
+    const cardProgress = document.getElementById('card-progress');
+    const quizProgress = document.getElementById('quiz-progress');
+    const fullscreenCardCounter = document.getElementById('fullscreen-card-counter');
+    const fullscreenQuizCounter = document.getElementById('fullscreen-quiz-counter');
+    const fileInput = document.getElementById('file-input');
+    const formatSelector = document.getElementById('format-selector');
+    const formatOptions = document.querySelectorAll('.format-option');
 
     const btnCards = document.getElementById('btn-cards');
     const btnQuiz = document.getElementById('btn-quiz');
     const btnFullscreen = document.getElementById('btn-fullscreen');
     const btnParse = document.getElementById('btn-parse');
+    const btnSave = document.getElementById('btn-save');
+    const btnLoadFile = document.getElementById('btn-load-file');
     const btnClear = document.getElementById('btn-clear');
+    const btnReverse = document.getElementById('btn-reverse');
     const btnPrev = document.getElementById('btn-prev');
     const btnFlip = document.getElementById('btn-flip');
     const btnNext = document.getElementById('btn-next');
@@ -615,8 +787,57 @@
     const colorBgBack = document.getElementById('color-bg-back');
     const timeFront = document.getElementById('time-front');
     const interval = document.getElementById('interval');
+    const quizTimeLimit = document.getElementById('quiz-time-limit');
+    const quizAutoReveal = document.getElementById('quiz-auto-reveal');
 
-    // PARSE
+    function saveSettings() {
+      const settings = {
+        theme: themeSelect.value,
+        autoMode: autoMode,
+        reverseMode: reverseMode,
+        fontFamilyFront: fontFamilyFront.value,
+        fontSizeFront: fontSizeFront.value,
+        colorTextFront: colorTextFront.value,
+        colorBgFront: colorBgFront.value,
+        fontFamilyBack: fontFamilyBack.value,
+        fontSizeBack: fontSizeBack.value,
+        colorTextBack: colorTextBack.value,
+        colorBgBack: colorBgBack.value,
+        timeFront: timeFront.value,
+        interval: interval.value,
+        quizTimeLimit: quizTimeLimit.value,
+        quizAutoReveal: quizAutoReveal.checked,
+        saveFormat: localStorage.getItem('flashcards-save-format') || '::'
+      };
+      localStorage.setItem('flashcards-settings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('flashcards-settings');
+      if (!saved) return;
+      const s = JSON.parse(saved);
+      themeSelect.value = s.theme || 'dark';
+      setTheme(s.theme);
+      autoMode = s.autoMode || 'manual';
+      reverseMode = s.reverseMode || false;
+      btnManual.classList.toggle('active', autoMode === 'manual');
+      btnAuto.classList.toggle('active', autoMode === 'auto');
+      btnReverse.classList.toggle('active', reverseMode);
+      fontFamilyFront.value = s.fontFamilyFront || 'system';
+      fontSizeFront.value = s.fontSizeFront || '28';
+      colorTextFront.value = s.colorTextFront || (s.theme === 'light' ? '#000000' : '#ffffff');
+      colorBgFront.value = s.colorBgFront || (s.theme === 'light' ? '#ffffff' : '#1e1e1e');
+      fontFamilyBack.value = s.fontFamilyBack || 'system';
+      fontSizeBack.value = s.fontSizeBack || '28';
+      colorTextBack.value = s.colorTextBack || (s.theme === 'light' ? '#000000' : '#ffffff');
+      colorBgBack.value = s.colorBgBack || (s.theme === 'light' ? '#f8f9fa' : '#2a2a2a');
+      timeFront.value = s.timeFront || '3';
+      interval.value = s.interval || '6';
+      quizTimeLimit.value = s.quizTimeLimit || '15';
+      quizAutoReveal.checked = s.quizAutoReveal || false;
+      applySettings();
+    }
+
     function parseCards(text) {
       if (!text.trim()) return [];
       return text.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
@@ -624,7 +845,7 @@
           const p = line.split('::', 2).map(s => s.trim());
           return p.length === 2 ? p : [line, '?'];
         }
-        const delims = [';', '-', '?', ','];
+        const delims = [';', '-', '?', ',', '=', '→'];
         for (const d of delims) {
           const i = line.indexOf(d);
           if (i > 0) return [line.slice(0, i).trim(), line.slice(i + 1).trim()];
@@ -633,25 +854,55 @@
       });
     }
 
-    // === КАРТОЧКИ ===
+    function parseCSV(text) {
+      if (!text.trim()) return [];
+      return text.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+        const parts = parseCSVLine(line);
+        if (parts.length >= 2) {
+          return [parts[0], parts[1]];
+        }
+        return [line, '?'];
+      });
+    }
+
+    function updateCardProgress() {
+      const total = cards.length;
+      const current = total ? currentIndex + 1 : 0;
+      const text = `${current} / ${total}`;
+      cardProgress.textContent = text;
+      fullscreenCardCounter.textContent = text;
+      if (document.body.classList.contains('pseudo-fullscreen')) {
+        fullscreenCardCounter.classList.remove('hidden');
+      } else {
+        fullscreenCardCounter.classList.add('hidden');
+      }
+    }
+
     function renderCard(direction = 'none') {
       if (cards.length === 0) {
         frontEl.textContent = 'Нет карточек';
         backEl.textContent = '—';
+        updateCardProgress();
         return;
       }
 
       const [front, back] = cards[currentIndex];
+      const displayFront = reverseMode ? back : front;
+      const displayBack = reverseMode ? front : back;
+
       isFlipped = false;
       cardEl.classList.remove('flipped');
+
+      frontEl.parentElement.style.direction = isRTL(displayFront) ? 'rtl' : 'ltr';
+      backEl.parentElement.style.direction = isRTL(displayBack) ? 'rtl' : 'ltr';
 
       if (direction === 'next') {
         cardEl.classList.remove('slide-enter', 'slide-exit');
         void cardEl.offsetWidth;
         cardEl.classList.add('slide-exit');
         setTimeout(() => {
-          frontEl.textContent = front;
-          backEl.textContent = back;
+          frontEl.textContent = displayFront;
+          backEl.textContent = displayBack;
           cardEl.classList.remove('slide-exit');
           cardEl.classList.add('slide-enter');
           setTimeout(() => cardEl.classList.remove('slide-enter'), 400);
@@ -660,8 +911,8 @@
         cardEl.style.transform = 'translateX(-100%)';
         cardEl.style.opacity = '0';
         setTimeout(() => {
-          frontEl.textContent = front;
-          backEl.textContent = back;
+          frontEl.textContent = displayFront;
+          backEl.textContent = displayBack;
           cardEl.style.transform = 'translateX(100%)';
           cardEl.style.opacity = '0';
           setTimeout(() => {
@@ -670,10 +921,11 @@
           }, 10);
         }, 10);
       } else {
-        frontEl.textContent = front;
-        backEl.textContent = back;
+        frontEl.textContent = displayFront;
+        backEl.textContent = displayBack;
       }
 
+      updateCardProgress();
       resetAutoTimers();
       if (autoMode === 'auto') {
         startAutoFlip();
@@ -721,7 +973,7 @@
 
     function copyCardText() {
       if (cards.length === 0) return;
-      const text = isFlipped ? cards[currentIndex][1] : cards[currentIndex][0];
+      const text = isFlipped ? (reverseMode ? cards[currentIndex][0] : cards[currentIndex][1]) : (reverseMode ? cards[currentIndex][1] : cards[currentIndex][0]);
       if (navigator.clipboard) {
         navigator.clipboard.writeText(text).catch(() => {});
       } else {
@@ -736,7 +988,41 @@
       }
     }
 
-    // === ТЕСТ ===
+    function updateQuizProgress() {
+      const total = cards.length;
+      const current = total ? currentQuizIndex + 1 : 0;
+      const text = `${current} / ${total}`;
+      quizProgress.textContent = text;
+      fullscreenQuizCounter.textContent = text;
+      if (document.body.classList.contains('pseudo-fullscreen')) {
+        fullscreenQuizCounter.classList.remove('hidden');
+      } else {
+        fullscreenQuizCounter.classList.add('hidden');
+      }
+    }
+
+    function resetQuizTimer() {
+      if (quizTimer) clearTimeout(quizTimer);
+    }
+
+    function startQuizTimer(correct) {
+      resetQuizTimer();
+      if (!quizAutoReveal.checked) return;
+      const time = parseInt(quizTimeLimit.value) * 1000;
+      quizTimer = setTimeout(() => {
+        if (selectedOption) return;
+        const options = document.querySelectorAll('.option');
+        options.forEach(opt => {
+          if (opt.textContent === correct) {
+            opt.classList.add('correct');
+          }
+        });
+        quizFeedback.textContent = `⏰ Время вышло. Правильно: ${correct}`;
+        quizFeedback.className = 'feedback incorrect';
+        quizNext.style.display = 'block';
+      }, time);
+    }
+
     function startQuiz() {
       if (cards.length === 0) return;
       currentQuizIndex = 0;
@@ -744,6 +1030,8 @@
     }
 
     function loadQuizQuestion() {
+      updateQuizProgress();
+      resetQuizTimer();
       if (currentQuizIndex >= cards.length) {
         quizFeedback.textContent = `Тест завершён!`;
         quizFeedback.className = 'feedback correct';
@@ -752,18 +1040,24 @@
       }
 
       const [question, correct] = cards[currentQuizIndex];
-      quizWord.textContent = question;
-      quizWord.className = 'word';
+      const displayQuestion = reverseMode ? correct : question;
+      const displayCorrect = reverseMode ? question : correct;
 
-      const allAnswers = cards.map(c => c[1]);
-      const options = [correct];
-      const others = allAnswers.filter(a => a !== correct);
+      quizWord.textContent = adjustQuestionMark(displayQuestion);
+      quizWord.style.direction = isRTL(displayQuestion) ? 'rtl' : 'ltr';
+
+      const allOptions = reverseMode 
+        ? cards.map(c => c[0])
+        : cards.map(c => c[1]);
+
+      const options = [displayCorrect];
+      const others = allOptions.filter(a => a !== displayCorrect);
       const shuffled = [...others].sort(() => Math.random() - 0.5);
       while (options.length < 4 && shuffled.length > 0) {
         options.push(shuffled.pop());
       }
       while (options.length < 4) {
-        options.push(correct);
+        options.push(displayCorrect);
       }
       const finalOptions = [...options].sort(() => Math.random() - 0.5);
 
@@ -771,8 +1065,8 @@
       finalOptions.forEach(opt => {
         const div = document.createElement('div');
         div.className = 'option';
-        div.textContent = opt;
-        div.addEventListener('click', () => handleOptionClick(opt, correct));
+        div.textContent = adjustQuestionMark(opt);
+        div.addEventListener('click', () => handleOptionClick(opt, displayCorrect));
         quizOptions.appendChild(div);
       });
 
@@ -780,10 +1074,13 @@
       quizFeedback.className = 'feedback';
       quizNext.style.display = 'none';
       selectedOption = null;
+
+      startQuizTimer(displayCorrect);
     }
 
     function handleOptionClick(selected, correct) {
       if (selectedOption) return;
+      resetQuizTimer();
       selectedOption = selected;
 
       const isCorrect = selected === correct;
@@ -801,7 +1098,6 @@
       quizNext.style.display = 'block';
     }
 
-    // === ОБЩИЕ ФУНКЦИИ ===
     function switchMode(newMode) {
       if (mode === newMode) return;
       mode = newMode;
@@ -812,28 +1108,20 @@
       cardControls.classList.toggle('hidden', mode !== 'cards');
     }
 
-    // === ЕДИНАЯ ФУНКЦИЯ ПРИМЕНЕНИЯ СТИЛЕЙ ===
     function applySettings() {
       const sys = 'system-ui, -apple-system, sans-serif';
-
-      // Карточки
       frontEl.style.fontFamily = fontFamilyFront.value === 'system' ? sys : fontFamilyFront.value;
       frontEl.style.fontSize = fontSizeFront.value + 'px';
       frontEl.style.color = colorTextFront.value;
       frontEl.style.backgroundColor = colorBgFront.value;
-
       backEl.style.fontFamily = fontFamilyBack.value === 'system' ? sys : fontFamilyBack.value;
       backEl.style.fontSize = fontSizeBack.value + 'px';
       backEl.style.color = colorTextBack.value;
       backEl.style.backgroundColor = colorBgBack.value;
-
-      // Тест: вопрос = лицевая сторона (без фона)
       quizWord.style.fontFamily = fontFamilyFront.value === 'system' ? sys : fontFamilyFront.value;
       quizWord.style.fontSize = fontSizeFront.value + 'px';
       quizWord.style.color = colorTextFront.value;
       quizWord.style.backgroundColor = 'transparent';
-
-      // Тест: варианты = оборотная сторона
       const options = document.querySelectorAll('.option');
       options.forEach(opt => {
         opt.style.fontFamily = fontFamilyBack.value === 'system' ? sys : fontFamilyBack.value;
@@ -842,6 +1130,7 @@
         opt.style.backgroundColor = colorBgBack.value;
         opt.style.borderColor = 'var(--border-color)';
       });
+      saveSettings();
     }
 
     function setTheme(theme) {
@@ -869,6 +1158,8 @@
         quizContainer.classList.add('fullscreen');
         flashcardContainer.classList.remove('fullscreen');
       }
+      updateCardProgress();
+      updateQuizProgress();
     }
 
     function exitPseudoFullscreen() {
@@ -877,7 +1168,75 @@
       quizContainer.classList.remove('fullscreen');
     }
 
-    // === СЛУШАТЕЛИ ===
+    function saveToFile(format) {
+      if (cards.length === 0) return;
+      let content = '';
+      let filename = 'flashcards.txt';
+      if (format === 'csv') {
+        content = cards.map(([q, a]) => {
+          const front = reverseMode ? a : q;
+          const back = reverseMode ? q : a;
+          return `${escapeCSV(front)},${escapeCSV(back)}`;
+        }).join('\n');
+        filename = 'flashcards.csv';
+      } else {
+        content = cards.map(([q, a]) => {
+          const front = reverseMode ? a : q;
+          const back = reverseMode ? q : a;
+          return `${front} ${format} ${back}`;
+        }).join('\n');
+        filename = 'flashcards.txt';
+      }
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      localStorage.setItem('flashcards-save-format', format);
+    }
+
+    function showFormatSelector() {
+      const savedFormat = localStorage.getItem('flashcards-save-format') || '::';
+      formatOptions.forEach(opt => {
+        if (opt.dataset.format === savedFormat) {
+          opt.classList.add('selected');
+        } else {
+          opt.classList.remove('selected');
+        }
+      });
+      formatSelector.style.display = 'flex';
+    }
+
+    function hideFormatSelector() {
+      formatSelector.style.display = 'none';
+    }
+
+    function loadFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          cards = parseCSV(text);
+        } else {
+          cards = parseCards(text);
+        }
+        currentIndex = 0;
+        currentQuizIndex = 0;
+        if (mode === 'cards') {
+          renderCard();
+        } else {
+          startQuiz();
+        }
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
     btnCards.addEventListener('click', () => switchMode('cards'));
     btnQuiz.addEventListener('click', () => switchMode('quiz'));
     btnFullscreen.addEventListener('click', enterPseudoFullscreen);
@@ -894,6 +1253,24 @@
       }
     });
 
+    btnSave.addEventListener('click', showFormatSelector);
+    btnLoadFile.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', loadFromFile);
+
+    formatOptions.forEach(opt => {
+      opt.addEventListener('click', () => {
+        formatOptions.forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        const format = opt.dataset.format;
+        hideFormatSelector();
+        saveToFile(format);
+      });
+    });
+
+    formatSelector.addEventListener('click', (e) => {
+      if (e.target === formatSelector) hideFormatSelector();
+    });
+
     btnClear.addEventListener('click', () => {
       inputText.value = '';
       cards = [];
@@ -903,6 +1280,20 @@
       backEl.textContent = '—';
       isFlipped = false;
       cardEl.classList.remove('flipped');
+      updateCardProgress();
+      quizProgress.textContent = '0 / 0';
+      resetQuizTimer();
+    });
+
+    btnReverse.addEventListener('click', () => {
+      reverseMode = !reverseMode;
+      btnReverse.classList.toggle('active', reverseMode);
+      if (mode === 'cards') {
+        renderCard();
+      } else {
+        startQuiz();
+      }
+      saveSettings();
     });
 
     btnPrev.addEventListener('click', prevCard);
@@ -932,12 +1323,12 @@
       loadQuizQuestion();
     });
 
-    // Обработчики режимов
     btnManual.addEventListener('click', () => {
       autoMode = 'manual';
       resetAutoTimers();
       btnManual.classList.add('active');
       btnAuto.classList.remove('active');
+      saveSettings();
     });
 
     btnAuto.addEventListener('click', () => {
@@ -945,6 +1336,7 @@
       renderCard();
       btnAuto.classList.add('active');
       btnManual.classList.remove('active');
+      saveSettings();
     });
 
     document.addEventListener('click', (e) => {
@@ -962,12 +1354,19 @@
 
     [fontFamilyFront, fontSizeFront, colorTextFront, colorBgFront,
      fontFamilyBack, fontSizeBack, colorTextBack, colorBgBack,
-     timeFront, interval].forEach(el => {
+     timeFront, interval, quizTimeLimit].forEach(el => {
       el.addEventListener('input', applySettings);
     });
 
-    // INIT
-    setTheme('dark');
+    quizAutoReveal.addEventListener('change', saveSettings);
+    themeSelect.addEventListener('change', () => {
+      setTheme(themeSelect.value);
+      saveSettings();
+    });
+
+    loadSettings();
+    setTheme(themeSelect.value);
   </script>
 </body>
 </html>
+
