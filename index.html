@@ -6,15 +6,13 @@
   <meta name="theme-color" content="#121212" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Flashcards">
-  <title>Flashcards</title>
+  <title>Flashcards & Quiz</title>
 
-  <!-- Иконки для PWA -->
-  <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzAwN0FGRiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkY8L3RleHQ+PC9zdmc+">
-  <link rel="apple-touch-icon" sizes="192x192" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzAwN0FGRiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkY8L3RleHQ+PC9zdmc+">
+  <!-- Иконка PWA: 🎴 -->
+  <link rel="icon" type="image/svg+xml" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%23007AFF'/><text x='96' y='96' font-family='Arial' font-size='80' text-anchor='middle' dominant-baseline='middle' fill='white'>🎴</text></svg>">
+  <link rel="apple-touch-icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%23007AFF'/><text x='96' y='96' font-family='Arial' font-size='80' text-anchor='middle' dominant-baseline='middle' fill='white'>🎴</text></svg>">
 
   <style>
-    /* === ТЕМЫ === */
     :root {
       --bg-body: #121212;
       --bg-card: #1e1e1e;
@@ -95,16 +93,16 @@
       color: var(--text-primary);
     }
 
-    #flashcard-container {
+    #flashcard-container, #quiz-container {
       flex: 1;
       min-height: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      perspective: 1000px;
       margin-bottom: 8px;
     }
 
+    /* === КАРТОЧКИ === */
     .card-wrapper {
       width: 100%;
       max-width: 500px;
@@ -139,7 +137,6 @@
       border-radius: 16px;
       box-shadow: 0 4px 12px var(--shadow);
       background: var(--bg-card);
-      /* Адаптивные отступы */
       padding: clamp(16px, 5vw, 40px) clamp(16px, 5vw, 40px);
       line-height: 1.4;
     }
@@ -153,6 +150,102 @@
     .slide-exit { animation: slideOut 0.4s forwards; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+
+    /* === ТЕСТ === */
+    .quiz-container {
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .word {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 20px 0;
+      direction: rtl;
+      unicode-bidi: embed;
+    }
+
+    .word.ltr {
+      direction: ltr;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 600px) {
+      .options {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* 🔧 ИСПРАВЛЕНО: варианты теперь подстраиваются под текст, но остаются симметричными и удобными */
+    .option {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+      min-width: 0;
+      max-width: 100%;
+      word-break: break-word;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .option:hover {
+      background: #0055c8;
+      color: white;
+    }
+
+    .option.correct {
+      background: #2ecc71;
+      color: white;
+    }
+
+    .option.incorrect {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      min-height: 24px;
+      font-weight: bold;
+    }
+
+    .feedback.correct { color: #2ecc71; }
+    .feedback.incorrect { color: #e74c3c; }
+
+    .next-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #007AFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+    }
+
+    /* Управление карточками */
+    .card-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      justify-content: center;
+    }
 
     /* Выпадающее меню */
     .settings-dropdown {
@@ -219,7 +312,7 @@
       color: var(--text-primary);
     }
 
-    /* === FULLSCREEN — ЗАПОЛНЯЕТ ВСЁ === */
+    /* === FULLSCREEN ОБЩИЙ === */
     body.pseudo-fullscreen {
       padding: 0;
       margin: 0;
@@ -234,12 +327,17 @@
       z-index: 2000;
     }
 
+    /* 🔧 ИСПРАВЛЕНО: только контейнеры БЕЗ .fullscreen скрываются */
     body.pseudo-fullscreen #input-section,
-    body.pseudo-fullscreen .top-bar {
+    body.pseudo-fullscreen .top-bar,
+    body.pseudo-fullscreen .card-controls,
+    body.pseudo-fullscreen #flashcard-container:not(.fullscreen),
+    body.pseudo-fullscreen #quiz-container:not(.fullscreen) {
       display: none !important;
     }
 
-    body.pseudo-fullscreen #flashcard-container {
+    /* Fullscreen для карточек */
+    body.pseudo-fullscreen #flashcard-container.fullscreen {
       position: fixed;
       top: 0;
       left: 0;
@@ -247,22 +345,50 @@
       height: 100dvh;
       margin: 0;
       padding: 0;
-      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       z-index: 10;
     }
 
-    body.pseudo-fullscreen .card-wrapper {
+    body.pseudo-fullscreen #flashcard-container.fullscreen .card-wrapper {
       max-height: none;
       height: 100%;
       width: 100%;
       max-width: none;
     }
 
-    body.pseudo-fullscreen .card-face {
+    body.pseudo-fullscreen #flashcard-container.fullscreen .card-face {
       border-radius: 0;
       box-shadow: none;
-      /* Без фиксированных отступов — только через clamp */
       padding: clamp(20px, 6vw, 60px) clamp(20px, 6vw, 60px);
+    }
+
+    /* Fullscreen для теста */
+    body.pseudo-fullscreen #quiz-container.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100dvw;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    body.pseudo-fullscreen #quiz-container.fullscreen .quiz-container {
+      width: 90%;
+      max-width: 600px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    body.pseudo-fullscreen #quiz-container.fullscreen .options {
+      width: 100%;
     }
 
     /* Кнопка выхода */
@@ -295,10 +421,15 @@
       display: flex;
     }
 
-    /* Адаптив */
+    .hidden { display: none; }
+
     @media (max-width: 600px) {
       .card-wrapper { max-height: 220px; }
       .settings-dropdown-content { width: 280px; max-height: 60vh; }
+      /* Убедимся, что на мобильных варианты — на всю ширину */
+      .options {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (min-height: 700px) and (min-width: 768px) {
@@ -310,8 +441,10 @@
   <button id="exit-fullscreen">×</button>
 
   <div class="top-bar">
+    <button id="btn-cards" class="active">Карточки</button>
+    <button id="btn-quiz">Тест</button>
     <button id="btn-fullscreen">На весь экран</button>
-    <button id="btn-parse">Загрузить карточки</button>
+    <button id="btn-parse">Загрузить</button>
     <button id="btn-clear">Очистить</button>
     <button id="btn-manual" class="active">Ручной</button>
     <button id="btn-auto">Авто</button>
@@ -328,8 +461,9 @@
             <option value="light">Светлая</option>
           </select>
         </div>
+        <!-- Лицевая сторона -->
         <div class="setting-item">
-          <label>Шрифт (лицо)</label>
+          <label>Шрифт (вопрос)</label>
           <select id="font-family-front">
             <option value="system">Системный</option>
             <option value="Arial, sans-serif">Arial</option>
@@ -346,20 +480,21 @@
           </select>
         </div>
         <div class="setting-item">
-          <label>Размер (лицо)</label>
+          <label>Размер (вопрос)</label>
           <input type="range" id="font-size-front" min="14" max="120" value="28" />
         </div>
         <div class="setting-item">
-          <label>Цвет текста (лицо)</label>
+          <label>Цвет текста (вопрос)</label>
           <input type="color" id="color-text-front" value="#ffffff" />
         </div>
         <div class="setting-item">
-          <label>Фон (лицо)</label>
+          <label>Фон (вопрос)</label>
           <input type="color" id="color-bg-front" value="#1e1e1e" />
         </div>
 
+        <!-- Оборотная сторона -->
         <div class="setting-item">
-          <label>Шрифт (оборот)</label>
+          <label>Шрифт (ответы)</label>
           <select id="font-family-back">
             <option value="system">Системный</option>
             <option value="Arial, sans-serif">Arial</option>
@@ -376,18 +511,19 @@
           </select>
         </div>
         <div class="setting-item">
-          <label>Размер (оборот)</label>
+          <label>Размер (ответы)</label>
           <input type="range" id="font-size-back" min="14" max="120" value="28" />
         </div>
         <div class="setting-item">
-          <label>Цвет текста (оборот)</label>
+          <label>Цвет текста (ответы)</label>
           <input type="color" id="color-text-back" value="#ffffff" />
         </div>
         <div class="setting-item">
-          <label>Фон (оборот)</label>
+          <label>Фон (ответы)</label>
           <input type="color" id="color-bg-back" value="#2a2a2a" />
         </div>
 
+        <!-- Авто-режим -->
         <div class="setting-item">
           <label>Авто: время до ответа (сек)</label>
           <input type="number" id="time-front" min="1" max="30" value="3" />
@@ -401,45 +537,45 @@
   </div>
 
   <div id="input-section">
-    <textarea id="input-text" placeholder="Вставьте карточки. Пример: Привет :: Hello&#10;Как дела? :: How are you?"></textarea>
+    <textarea id="input-text" placeholder="Вставьте карточки. Пример: كتاب :: книга&#10;قلم; ручка"></textarea>
   </div>
 
+  <!-- Режим карточек -->
   <div id="flashcard-container">
     <div class="card-wrapper">
       <div class="card" id="card">
-        <div class="card-face card-front" id="front">Нажмите "Загрузить карточки"</div>
+        <div class="card-face card-front" id="front">Нажмите "Загрузить"</div>
         <div class="card-face card-back" id="back">—</div>
       </div>
     </div>
   </div>
 
-  <script>
-    // === PWA Manifest ===
-    const manifest = {
-      "name": "Flashcards",
-      "short_name": "Flashcards",
-      "start_url": ".",
-      "display": "standalone",
-      "background_color": "#121212",
-      "theme_color": "#121212",
-      "icons": [{
-        "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzAwN0FGRiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkY8L3RleHQ+PC9zdmc+",
-        "sizes": "192x192",
-        "type": "image/png"
-      }]
-    };
-    const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
-    const manifestURL = URL.createObjectURL(manifestBlob);
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    document.head.appendChild(link);
+  <!-- Управление карточками -->
+  <div class="card-controls" id="card-controls">
+    <button id="btn-prev">← Назад</button>
+    <button id="btn-flip">Показать ответ</button>
+    <button id="btn-next">Далее →</button>
+  </div>
 
+  <!-- Режим теста -->
+  <div id="quiz-container" class="hidden">
+    <div class="quiz-container">
+      <div class="word" id="quiz-word"></div>
+      <div class="options" id="quiz-options"></div>
+      <div class="feedback" id="quiz-feedback"></div>
+      <button class="next-btn" id="quiz-next">Следующий</button>
+    </div>
+  </div>
+
+  <script>
     // === STATE ===
     let cards = [];
+    let mode = 'cards'; // 'cards' or 'quiz'
     let currentIndex = 0;
+    let currentQuizIndex = 0;
     let isFlipped = false;
-    let mode = 'manual';
+    let selectedOption = null;
+    let autoMode = 'manual'; // 'manual' or 'auto'
     let autoTimer = null;
     let flipTimer = null;
 
@@ -448,9 +584,25 @@
     const frontEl = document.getElementById('front');
     const backEl = document.getElementById('back');
     const cardEl = document.getElementById('card');
+    const quizContainer = document.getElementById('quiz-container');
+    const flashcardContainer = document.getElementById('flashcard-container');
+    const cardControls = document.getElementById('card-controls');
+    const quizWord = document.getElementById('quiz-word');
+    const quizOptions = document.getElementById('quiz-options');
+    const quizFeedback = document.getElementById('quiz-feedback');
+    const quizNext = document.getElementById('quiz-next');
+
+    const btnCards = document.getElementById('btn-cards');
+    const btnQuiz = document.getElementById('btn-quiz');
     const btnFullscreen = document.getElementById('btn-fullscreen');
-    const exitFullscreenBtn = document.getElementById('exit-fullscreen');
+    const btnParse = document.getElementById('btn-parse');
     const btnClear = document.getElementById('btn-clear');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnFlip = document.getElementById('btn-flip');
+    const btnNext = document.getElementById('btn-next');
+    const btnManual = document.getElementById('btn-manual');
+    const btnAuto = document.getElementById('btn-auto');
+    const exitFullscreenBtn = document.getElementById('exit-fullscreen');
     const themeSelect = document.getElementById('theme-select');
 
     const fontFamilyFront = document.getElementById('font-family-front');
@@ -481,7 +633,7 @@
       });
     }
 
-    // RENDER
+    // === КАРТОЧКИ ===
     function renderCard(direction = 'none') {
       if (cards.length === 0) {
         frontEl.textContent = 'Нет карточек';
@@ -523,14 +675,18 @@
       }
 
       resetAutoTimers();
-      if (mode === 'auto') startAutoFlip();
+      if (autoMode === 'auto') {
+        startAutoFlip();
+      }
     }
 
     function flipCard() {
       if (cards.length === 0) return;
       isFlipped = !isFlipped;
       cardEl.classList.toggle('flipped', isFlipped);
-      if (mode === 'auto' && isFlipped) startAutoNext();
+      if (autoMode === 'auto' && isFlipped) {
+        startAutoNext();
+      }
     }
 
     function nextCard() {
@@ -563,8 +719,104 @@
       autoTimer = setTimeout(nextCard, Math.max(1000, total - flip));
     }
 
+    function copyCardText() {
+      if (cards.length === 0) return;
+      const text = isFlipped ? cards[currentIndex][1] : cards[currentIndex][0];
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).catch(() => {});
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+        } catch (e) {}
+        document.body.removeChild(textarea);
+      }
+    }
+
+    // === ТЕСТ ===
+    function startQuiz() {
+      if (cards.length === 0) return;
+      currentQuizIndex = 0;
+      loadQuizQuestion();
+    }
+
+    function loadQuizQuestion() {
+      if (currentQuizIndex >= cards.length) {
+        quizFeedback.textContent = `Тест завершён!`;
+        quizFeedback.className = 'feedback correct';
+        quizNext.style.display = 'none';
+        return;
+      }
+
+      const [question, correct] = cards[currentQuizIndex];
+      quizWord.textContent = question;
+      quizWord.className = 'word';
+
+      const allAnswers = cards.map(c => c[1]);
+      const options = [correct];
+      const others = allAnswers.filter(a => a !== correct);
+      const shuffled = [...others].sort(() => Math.random() - 0.5);
+      while (options.length < 4 && shuffled.length > 0) {
+        options.push(shuffled.pop());
+      }
+      while (options.length < 4) {
+        options.push(correct);
+      }
+      const finalOptions = [...options].sort(() => Math.random() - 0.5);
+
+      quizOptions.innerHTML = '';
+      finalOptions.forEach(opt => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.textContent = opt;
+        div.addEventListener('click', () => handleOptionClick(opt, correct));
+        quizOptions.appendChild(div);
+      });
+
+      quizFeedback.textContent = '';
+      quizFeedback.className = 'feedback';
+      quizNext.style.display = 'none';
+      selectedOption = null;
+    }
+
+    function handleOptionClick(selected, correct) {
+      if (selectedOption) return;
+      selectedOption = selected;
+
+      const isCorrect = selected === correct;
+      const options = document.querySelectorAll('.option');
+      options.forEach(opt => {
+        if (opt.textContent === correct) {
+          opt.classList.add('correct');
+        } else if (opt.textContent === selected && !isCorrect) {
+          opt.classList.add('incorrect');
+        }
+      });
+
+      quizFeedback.textContent = isCorrect ? '✅ Правильно!' : `❌ Неверно. Правильно: ${correct}`;
+      quizFeedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+      quizNext.style.display = 'block';
+    }
+
+    // === ОБЩИЕ ФУНКЦИИ ===
+    function switchMode(newMode) {
+      if (mode === newMode) return;
+      mode = newMode;
+      btnCards.classList.toggle('active', mode === 'cards');
+      btnQuiz.classList.toggle('active', mode === 'quiz');
+      flashcardContainer.classList.toggle('hidden', mode !== 'cards');
+      quizContainer.classList.toggle('hidden', mode !== 'quiz');
+      cardControls.classList.toggle('hidden', mode !== 'cards');
+    }
+
+    // === ЕДИНАЯ ФУНКЦИЯ ПРИМЕНЕНИЯ СТИЛЕЙ ===
     function applySettings() {
       const sys = 'system-ui, -apple-system, sans-serif';
+
+      // Карточки
       frontEl.style.fontFamily = fontFamilyFront.value === 'system' ? sys : fontFamilyFront.value;
       frontEl.style.fontSize = fontSizeFront.value + 'px';
       frontEl.style.color = colorTextFront.value;
@@ -574,11 +826,26 @@
       backEl.style.fontSize = fontSizeBack.value + 'px';
       backEl.style.color = colorTextBack.value;
       backEl.style.backgroundColor = colorBgBack.value;
+
+      // Тест: вопрос = лицевая сторона (без фона)
+      quizWord.style.fontFamily = fontFamilyFront.value === 'system' ? sys : fontFamilyFront.value;
+      quizWord.style.fontSize = fontSizeFront.value + 'px';
+      quizWord.style.color = colorTextFront.value;
+      quizWord.style.backgroundColor = 'transparent';
+
+      // Тест: варианты = оборотная сторона
+      const options = document.querySelectorAll('.option');
+      options.forEach(opt => {
+        opt.style.fontFamily = fontFamilyBack.value === 'system' ? sys : fontFamilyBack.value;
+        opt.style.fontSize = fontSizeBack.value + 'px';
+        opt.style.color = colorTextBack.value;
+        opt.style.backgroundColor = colorBgBack.value;
+        opt.style.borderColor = 'var(--border-color)';
+      });
     }
 
     function setTheme(theme) {
       document.body.className = theme === 'light' ? 'theme-light' : 'theme-dark';
-      // Обновляем цвета по умолчанию при смене темы
       if (theme === 'light') {
         colorTextFront.value = '#000000';
         colorBgFront.value = '#ffffff';
@@ -593,78 +860,91 @@
       applySettings();
     }
 
-    // Fullscreen
     function enterPseudoFullscreen() {
       document.body.classList.add('pseudo-fullscreen');
+      if (mode === 'cards') {
+        flashcardContainer.classList.add('fullscreen');
+        quizContainer.classList.remove('fullscreen');
+      } else {
+        quizContainer.classList.add('fullscreen');
+        flashcardContainer.classList.remove('fullscreen');
+      }
     }
 
     function exitPseudoFullscreen() {
       document.body.classList.remove('pseudo-fullscreen');
+      flashcardContainer.classList.remove('fullscreen');
+      quizContainer.classList.remove('fullscreen');
     }
 
-    // Копирование
-    function copyCardText() {
-      if (cards.length === 0) return;
-      const text = isFlipped ? cards[currentIndex][1] : cards[currentIndex][0];
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).catch(console.error);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-    }
-
-    // Слушатели
+    // === СЛУШАТЕЛИ ===
+    btnCards.addEventListener('click', () => switchMode('cards'));
+    btnQuiz.addEventListener('click', () => switchMode('quiz'));
     btnFullscreen.addEventListener('click', enterPseudoFullscreen);
     exitFullscreenBtn.addEventListener('click', exitPseudoFullscreen);
 
-    document.getElementById('btn-parse').addEventListener('click', () => {
+    btnParse.addEventListener('click', () => {
       cards = parseCards(inputText.value);
       currentIndex = 0;
-      renderCard();
+      currentQuizIndex = 0;
+      if (mode === 'cards') {
+        renderCard();
+      } else {
+        startQuiz();
+      }
     });
 
     btnClear.addEventListener('click', () => {
       inputText.value = '';
       cards = [];
+      currentIndex = 0;
+      currentQuizIndex = 0;
       frontEl.textContent = 'Нет карточек';
       backEl.textContent = '—';
       isFlipped = false;
       cardEl.classList.remove('flipped');
     });
 
+    btnPrev.addEventListener('click', prevCard);
+    btnFlip.addEventListener('click', flipCard);
+    btnNext.addEventListener('click', nextCard);
+
     cardEl.addEventListener('click', () => {
       if (document.body.classList.contains('pseudo-fullscreen')) {
         flipCard();
-      } else {
+      } else if (mode === 'cards') {
         copyCardText();
       }
     });
 
     document.addEventListener('keydown', (e) => {
       if (document.body.classList.contains('pseudo-fullscreen')) {
-        if (e.key === ' ' || e.key === 'Enter') flipCard();
-        if (e.key === 'ArrowRight') nextCard();
-        if (e.key === 'ArrowLeft') prevCard();
+        if (mode === 'cards') {
+          if (e.key === ' ' || e.key === 'Enter') flipCard();
+          if (e.key === 'ArrowRight') nextCard();
+          if (e.key === 'ArrowLeft') prevCard();
+        }
       }
     });
 
-    document.getElementById('btn-manual').addEventListener('click', () => {
-      mode = 'manual';
-      resetAutoTimers();
-      document.getElementById('btn-manual').classList.add('active');
-      document.getElementById('btn-auto').classList.remove('active');
+    quizNext.addEventListener('click', () => {
+      currentQuizIndex++;
+      loadQuizQuestion();
     });
 
-    document.getElementById('btn-auto').addEventListener('click', () => {
-      mode = 'auto';
+    // Обработчики режимов
+    btnManual.addEventListener('click', () => {
+      autoMode = 'manual';
+      resetAutoTimers();
+      btnManual.classList.add('active');
+      btnAuto.classList.remove('active');
+    });
+
+    btnAuto.addEventListener('click', () => {
+      autoMode = 'auto';
       renderCard();
-      document.getElementById('btn-auto').classList.add('active');
-      document.getElementById('btn-manual').classList.remove('active');
+      btnAuto.classList.add('active');
+      btnManual.classList.remove('active');
     });
 
     document.addEventListener('click', (e) => {
@@ -680,10 +960,6 @@
       document.getElementById('settings-body').classList.toggle('show');
     });
 
-    themeSelect.addEventListener('change', () => {
-      setTheme(themeSelect.value);
-    });
-
     [fontFamilyFront, fontSizeFront, colorTextFront, colorBgFront,
      fontFamilyBack, fontSizeBack, colorTextBack, colorBgBack,
      timeFront, interval].forEach(el => {
@@ -691,8 +967,7 @@
     });
 
     // INIT
-    setTheme('dark'); // начальная тема
+    setTheme('dark');
   </script>
 </body>
 </html>
-
