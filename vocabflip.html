@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Словарные карточки</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    body {
+      background: #f9fbfd;
+      padding: 20px;
+      color: #2c3e50;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #1a365d;
+      font-weight: 700;
+    }
+    .controls {
+      max-width: 800px;
+      margin: 0 auto 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .control-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #3182ce;
+    }
+    .editable-area {
+      position: relative;
+    }
+    #manualInput {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 16px;
+      /* УБРАНО: monospace и white-space: pre */
+      outline: none;
+      background: white;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    #manualInput:focus {
+      border-color: #3182ce;
+    }
+    .clear-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #e2e8f0;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .clear-btn:hover {
+      background: #cbd5e0;
+    }
+    button {
+      background: #3182ce;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) {
+      background: #2c5282;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .card-area {
+      max-width: 800px;
+      margin: 0 auto;
+      perspective: 1000px;
+    }
+    .card {
+      width: 100%;
+      height: 260px;
+      position: relative;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      margin-bottom: 30px;
+    }
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      padding: 24px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    .front {
+      background: white;
+      color: #1a202c;
+      border: 1px solid #e2e8f0;
+    }
+    .back {
+      background: #4299e1;
+      color: white;
+      transform: rotateY(180deg);
+    }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      min-width: 120px;
+    }
+    .btn-know { background: #38a169; color: white; }
+    .btn-unknown { background: #e53e3e; color: white; }
+    .btn-forgot { background: #dd6b20; color: white; }
+    .btn:hover:not(:disabled) { opacity: 0.9; transform: scale(1.03); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .stats {
+      max-width: 800px;
+      margin: 30px auto 0;
+      background: white;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    .error {
+      color: #e53e3e;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    small {
+      color: #718096;
+      font-size: 13px;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    @media (max-width: 600px) {
+      .card-face { font-size: 20px; padding: 18px; }
+      .btn { padding: 10px 16px; font-size: 14px; min-width: auto; }
+      h1 { font-size: 24px; }
+      .clear-btn { top: 8px; right: 8px; width: 24px; height: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 Словарные карточки</h1>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Загрузить из GitHub (RAW-ссылка)</label>
+      <input type="url" id="githubUrl" placeholder="https://raw.githubusercontent.com/ваше/репо/main/words.txt" />
+      <button onclick="App.loadFromUrl()" id="loadUrlBtn">Загрузить</button>
+      <div id="urlError" class="error hidden"></div>
+    </div>
+
+    <div class="control-group">
+      <label>Или загрузите файл</label>
+      <input type="file" id="fileInput" accept=".txt,.csv,text/plain" />
+      <div id="fileError" class="error hidden"></div>
+    </div>
+
+    <div class="control-group">
+      <label>Или вставьте данные вручную<br>
+        <small>Разделители: <code>Tab</code>, <code>::</code>, <code>-</code>, <code>—</code>, <code>=</code>, <code>?</code>, <code>/</code>, <code>|</code></small>
+      </label>
+      <div class="editable-area">
+        <div id="manualInput" contenteditable="true" spellcheck="false">
+          Вставьте сюда текст (например, из Excel)
+        </div>
+        <button class="clear-btn" onclick="App.clearManualInput()" title="Очистить">✕</button>
+      </div>
+      <button onclick="App.loadFromManual()" id="loadManualBtn">Применить</button>
+      <div id="manualError" class="error hidden"></div>
+    </div>
+  </div>
+
+  <div class="card-area">
+    <div class="card" id="flashcard" onclick="App.flipCard()">
+      <div class="card-face front" id="front">Загрузите словарь</div>
+      <div class="card-face back" id="back">—</div>
+    </div>
+    <div class="buttons">
+      <button class="btn btn-know" id="btnKnow" onclick="App.handleAnswer('known')">✅ Знаю</button>
+      <button class="btn btn-unknown" id="btnUnknown" onclick="App.handleAnswer('unknown')">❌ Не знаю</button>
+      <button class="btn btn-forgot" id="btnForgot" onclick="App.handleAnswer('forgot')">🤔 Забыл</button>
+    </div>
+  </div>
+
+  <div class="stats hidden" id="statsPanel">
+    <h3>📊 Статистика</h3>
+    <p id="statsText" style="margin: 16px 0; font-size: 18px;"></p>
+    <button onclick="App.exportUnknown()" id="exportBtn">📥 Скачать незнакомые/забытые слова (.csv)</button>
+  </div>
+
+  <script>
+    const App = {
+      words: [],
+      currentIndex: 0,
+      stats: { total: 0, known: 0, unknown: 0, forgot: 0 },
+      isProcessing: false,
+
+      SEPARATORS: ['::', '\t', '—', '-', '=', '?', '/', '|'],
+
+      showError(elementId, message) {
+        const el = document.getElementById(elementId);
+        if (el) {
+          el.textContent = message;
+          el.classList.remove('hidden');
+          setTimeout(() => el.classList.add('hidden'), 6000);
+        }
+      },
+
+      setButtonsEnabled(enabled) {
+        this.isProcessing = !enabled;
+        ['btnKnow', 'btnUnknown', 'btnForgot'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn) btn.disabled = !enabled;
+        });
+      },
+
+      detectSeparator(line) {
+        for (const sep of this.SEPARATORS) {
+          if (line.includes(sep)) return sep;
+        }
+        return null;
+      },
+
+      parseText(text) {
+        if (!text || typeof text !== 'string') {
+          throw new Error('Некорректный ввод');
+        }
+
+        const lines = text
+          .split(/\r\n|\n/)
+          .map(l => l.trimEnd())
+          .filter(l => l.trim() !== '');
+
+        if (lines.length === 0) throw new Error('Пустой ввод');
+
+        let separator = null;
+        for (const line of lines) {
+          separator = this.detectSeparator(line);
+          if (separator !== null) break;
+        }
+
+        if (separator === null) {
+          throw new Error('Не найден разделитель. Используйте: Tab, ::, -, —, =, ?, /, |');
+        }
+
+        const result = [];
+        for (const line of lines) {
+          const parts = line.split(separator).map(s => s.trim()).filter(s => s !== '');
+          if (parts.length >= 2) {
+            result.push({ front: parts[0], back: parts[1], status: 'unknown' });
+          }
+        }
+
+        if (result.length === 0) throw new Error('Не найдено ни одной пары слов');
+        return result;
+      },
+
+      loadWords(newWords) {
+        if (!Array.isArray(newWords) || newWords.length === 0) {
+          this.showError('manualError', 'Нет слов для загрузки');
+          return;
+        }
+        this.words = newWords;
+        this.currentIndex = 0;
+        this.stats = { total: newWords.length, known: 0, unknown: 0, forgot: 0 };
+        document.getElementById('statsPanel')?.classList.add('hidden');
+        this.showCard();
+      },
+
+      showCard() {
+        this.setButtonsEnabled(true);
+        if (this.currentIndex >= this.words.length) {
+          this.showStats();
+          return;
+        }
+        const word = this.words[this.currentIndex];
+        document.getElementById('front').textContent = word.front || '—';
+        document.getElementById('back').textContent = word.back || '—';
+        document.getElementById('flashcard').classList.remove('flipped');
+      },
+
+      flipCard() {
+        if (this.isProcessing) return;
+        document.getElementById('flashcard').classList.toggle('flipped');
+      },
+
+      handleAnswer(result) {
+        if (this.isProcessing || this.currentIndex >= this.words.length) return;
+        this.setButtonsEnabled(false);
+        this.words[this.currentIndex].status = result;
+        if (result === 'known') this.stats.known++;
+        else if (result === 'unknown') this.stats.unknown++;
+        else if (result === 'forgot') this.stats.forgot++;
+        this.currentIndex++;
+        setTimeout(() => this.showCard(), 400);
+      },
+
+      showStats() {
+        const text = `Всего слов: ${this.stats.total}<br>
+          Знаю: ${this.stats.known}<br>
+          Не знаю: ${this.stats.unknown}<br>
+          Забыл: ${this.stats.forgot}`;
+        document.getElementById('statsText').innerHTML = text;
+        document.getElementById('statsPanel').classList.remove('hidden');
+      },
+
+      exportUnknown() {
+        const unknownWords = this.words.filter(w => w.status === 'unknown' || w.status === 'forgot');
+        if (unknownWords.length === 0) {
+          alert('Нет слов для экспорта');
+          return;
+        }
+        let csv = 'front,back\n';
+        csv += unknownWords.map(w => 
+          `"${String(w.front).replace(/"/g, '""')}","${String(w.back).replace(/"/g, '""')}"`
+        ).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'unknown_words.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      async loadFromUrl() {
+        const input = document.getElementById('githubUrl');
+        const url = input?.value.trim();
+        if (!url) {
+          this.showError('urlError', 'Введите RAW-ссылку');
+          return;
+        }
+        if (!url.startsWith('https://raw.githubusercontent.com/')) {
+          this.showError('urlError', 'Ссылка должна начинаться с https://raw.githubusercontent.com/');
+          return;
+        }
+        const btn = document.getElementById('loadUrlBtn');
+        try {
+          if (btn) btn.disabled = true;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const text = await res.text();
+          this.loadWords(this.parseText(text));
+        } catch (e) {
+          this.showError('urlError', 'Ошибка: ' + (e.message || 'неизвестная'));
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      },
+
+      clearManualInput() {
+        const el = document.getElementById('manualInput');
+        if (el) {
+          el.innerHTML = '';
+          el.focus();
+        }
+      },
+
+      loadFromManual() {
+        const el = document.getElementById('manualInput');
+        if (!el) return;
+        let text = el.innerText || el.textContent || '';
+        text = text.replace(/\u00A0/g, ' ');
+        if (!text.trim()) {
+          this.showError('manualError', 'Поле пустое');
+          return;
+        }
+        try {
+          this.loadWords(this.parseText(text));
+        } catch (e) {
+          this.showError('manualError', 'Ошибка: ' + (e.message || 'некорректный формат'));
+        }
+      }
+    };
+
+    document.getElementById('fileInput')?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          App.loadWords(App.parseText(ev.target.result));
+        } catch (e) {
+          App.showError('fileError', 'Ошибка: ' + (e.message || 'некорректный формат'));
+        }
+      };
+      reader.onerror = () => App.showError('fileError', 'Не удалось прочитать файл');
+      reader.readAsText(file, 'utf-8');
+    });
+
+    document.getElementById('manualInput')?.addEventListener('focus', function() {
+      if (this.innerText.trim() === 'Вставьте сюда текст (например, из Excel)') {
+        this.innerText = '';
+      }
+    });
+
+    document.getElementById('manualInput')?.addEventListener('blur', function() {
+      if (this.innerText.trim() === '') {
+        this.innerText = 'Вставьте сюда текст (например, из Excel)';
+      }
+    });
+  </script>
+</body>
+</html>
+
