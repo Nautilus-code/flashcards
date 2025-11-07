@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Memoria: Карточки и Тест</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%233B82F6'/><text x='96' y='96' font-family='Arial' font-size='80' text-anchor='middle' dominant-baseline='middle' fill='white'>✨</text></svg>">
+
+  <style>
+    :root {
+      --bg-body: #f7f9fc;
+      --bg-card: #ffffff;
+      --bg-input: #ffffff;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --shadow: rgba(17, 24, 39, 0.08);
+      --color-accent: #3b82f6;
+      --color-accent-hover: #2563eb;
+      --border-radius-lg: 16px;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
+      --anim-duration: 0.6s;
+      --anim-ease: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .theme-dark {
+      --bg-body: #171717;
+      --bg-card: #262626;
+      --bg-input: #373737;
+      --text-primary: #e5e5e5;
+      --text-secondary: #a3a3a3;
+      --border-color: #404040;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --color-accent: #60a5fa;
+      --color-accent-hover: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-primary);
+    }
+
+    body {
+      background: var(--bg-body);
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s;
+      overflow-x: hidden;
+    }
+    
+    .main-content-wrapper {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto; 
+      display: flex;
+      flex-direction: column;
+      align-items: center; 
+    }
+
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+      padding: 10px;
+      background: var(--bg-card);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 4px 6px var(--shadow);
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 20px auto; 
+    }
+
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--border-color);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    button:hover {
+      background: var(--text-secondary);
+      color: var(--bg-card);
+    }
+
+    button.active {
+      background: var(--color-accent);
+      color: white;
+      font-weight: 500;
+    }
+    
+    .controls-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .separator {
+      width: 1px;
+      height: 30px;
+      background-color: var(--border-color);
+      margin: 0 5px;
+      flex-shrink: 0;
+    }
+
+    #input-section {
+      background: var(--bg-input);
+      padding: 15px;
+      border-radius: var(--border-radius-lg);
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      width: 100%;
+    }
+
+    #input-section textarea {
+      min-height: 90px;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      width: 100%;
+      resize: vertical;
+    }
+
+    #flashcard-container {
+      width: 100%;
+      max-width: 550px; 
+      position: relative;
+      margin: 0 auto 20px auto; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      perspective: 1200px;
+    }
+    
+    .card-wrapper {
+      width: 100%;
+      min-height: 250px; 
+      position: relative;
+      transition: height 0.3s, transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.5s;
+    }
+    
+    #card-progress {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -25px; 
+      z-index: 2;
+      width: 100%;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform var(--anim-duration) var(--anim-ease); 
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+      transition: transform var(--anim-duration) var(--anim-ease); 
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      backface-visibility: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      overflow-y: auto;
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 10px 20px var(--shadow);
+      background: var(--bg-card);
+      padding: clamp(20px, 6vw, 50px);
+      line-height: 1.4;
+      font-size: clamp(20px, 5vw, 40px);
+      font-weight: 600;
+      transition: background 0.3s, color 0.3s;
+      word-break: break-word;
+    }
+    
+    .card-back {
+      transform: rotateY(180deg);
+      position: absolute;
+    }
+    
+    .card-controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 10px;
+      padding-top: 10px;
+      width: 100%;
+      max-width: 550px;
+      margin: 0 auto;
+    }
+
+    .card-controls button {
+      padding: 12px 24px;
+      font-size: 16px;
+      min-width: 120px;
+      background: var(--color-accent);
+      color: white;
+      border-radius: 12px;
+    }
+    
+    .card-controls button:hover {
+      background: var(--color-accent-hover);
+    }
+
+    #quiz-container {
+      width: 100%;
+      padding: 20px 0;
+    }
+    
+    .quiz-container {
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      text-align: center;
+      background: var(--bg-card);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 4px 10px var(--shadow);
+      margin: 0 auto;
+    }
+
+    .quiz-info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    
+    .quiz-progress {
+      position: static;
+    }
+
+    .quiz-timer {
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--color-warning);
+      transition: color 0.3s;
+    }
+
+    .quiz-timer.critical {
+      color: var(--color-danger);
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .word {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 12px 0 20px;
+      min-height: 1.5em;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      text-align: left;
+    }
+
+    @media (min-width: 600px) {
+      .options {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .option {
+      padding: 15px 20px;
+      border-radius: 12px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.2s;
+      word-wrap: break-word;
+    }
+
+    .option:hover {
+      background: var(--color-accent);
+      color: white;
+    }
+
+    .option.correct {
+      background: #10b981;
+      color: white;
+    }
+
+    .option.incorrect {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .tts-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.3);
+      color: white;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+      z-index: 3;
+    }
+    .tts-button.visible { display: flex; }
+    .word .tts-button { top: 0; right: -36px; }
+
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-btn { background: var(--border-color); color: var(--text-primary); }
+    .dropdown-content {
+      display: none; position: absolute; top: 100%; right: 0; 
+      background: var(--bg-card); border-radius: var(--border-radius-lg); 
+      box-shadow: 0 4px 12px var(--shadow); padding: 16px; z-index: 1000; 
+      width: 320px; max-height: 70vh; overflow-y: auto; margin-top: 10px;
+    }
+    .dropdown-content.show { display: block; }
+    .setting-item { display: flex; flex-direction: column; margin-bottom: 12px; }
+    .setting-item label { font-size: 13px; margin-bottom: 4px; color: var(--text-secondary); }
+    .setting-item input, .setting-item select { padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background: var(--bg-input); color: var(--text-primary); }
+    .checkbox-group { display: flex; align-items: center; gap: 8px; }
+
+    .burger-item {
+      display: block; width: 100%; text-align: left; padding: 10px; 
+      margin-bottom: 5px; border-radius: 8px; background: var(--bg-body);
+    }
+    .burger-item.active { background: var(--color-accent); color: white; }
+    
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .top-bar { padding-right: 60px; margin-bottom: 10px; }
+
+      #burger-menu {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 2000;
+        margin: 0;
+        padding: 0;
+      }
+      #burger-menu-btn {
+        background: var(--color-accent);
+        color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #burger-menu-body {
+        right: 0;
+        top: 100%;
+        width: 250px;
+        margin-top: 5px;
+      }
+      
+      #btn-save, #btn-load-file, #btn-clear, #btn-reverse, #btn-fullscreen, 
+      #btn-manual, #btn-auto, #settings-dropdown,
+      .separator {
+        display: none !important;
+      }
+      
+      #burger-menu-btn {
+        display: flex;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      #burger-menu {
+        display: none !important;
+      }
+    }
+    
+    .fullscreen-counter { 
+      position: fixed; 
+      left: 0; 
+      right: 0; 
+      text-align: center; 
+      font-size: 16px; 
+      z-index: 5; 
+      pointer-events: none; 
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+      text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+    #fullscreen-card-counter { bottom: 20px; }
+    #fullscreen-quiz-counter { top: 20px; color: white; }
+    .hidden { display: none !important; }
+
+    body.pseudo-fullscreen {
+      padding: 0; margin: 0; background: #000; overflow: hidden; height: 100dvh; width: 100dvw; 
+      position: fixed; top: 0; left: 0; inset: 0; z-index: 2000;
+    }
+    body.pseudo-fullscreen #flashcard-container, 
+    body.pseudo-fullscreen #quiz-container {
+      position: fixed; top: 0; left: 0; width: 100dvw; height: 100dvh; margin: 0; padding: 0;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10;
+      max-width: 100vw;
+    }
+    
+    body.pseudo-fullscreen .top-bar, 
+    body.pseudo-fullscreen #input-section, 
+    body.pseudo-fullscreen .card-controls,
+    body.pseudo-fullscreen #card-progress,
+    body.pseudo-fullscreen .quiz-info-bar { 
+      display: none !important; 
+    }
+
+    #exit-fullscreen {
+      position: fixed; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(0, 0, 0, 0.4); color: white; border: 1px solid rgba(255, 255, 255, 0.3);
+      font-size: 24px; display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px); z-index: 1000;
+    }
+    body.pseudo-fullscreen #exit-fullscreen { display: flex; }
+
+    body.pseudo-fullscreen #flashcard-container .card-wrapper {
+      max-width: 90vw;
+      width: 90vw;
+      height: auto;
+      max-height: 80vh;
+    }
+    body.pseudo-fullscreen #flashcard-container .card-face {
+      font-size: clamp(32px, 7vw, 90px);
+      padding: 40px;
+      min-height: 300px;
+    }
+    
+    body.pseudo-fullscreen #quiz-container .quiz-container {
+      width: 90vw;
+      max-width: 800px;
+      height: auto;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #000;
+    }
+    body.pseudo-fullscreen #quiz-container .word {
+      font-size: clamp(32px, 7vw, 70px);
+      color: white;
+    }
+    body.pseudo-fullscreen #quiz-container .option {
+      font-size: clamp(18px, 3vw, 24px);
+      padding: 20px;
+    }
+
+    #format-selector { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 3000; justify-content: center; align-items: center; }
+    #format-selector-content { background: var(--bg-card); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .format-option { display: block; padding: 10px; margin: 8px 0; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; text-align: center; }
+    .format-option:hover { background: var(--color-accent-hover); color: white; }
+    .format-option.selected { background: var(--color-accent); color: white; border-color: var(--color-accent); }
+    
+    .slide-next-exit { transform: translateX(-100%) scale(0.8) rotateY(30deg); opacity: 0; }
+    .slide-prev-exit { transform: translateX(100%) scale(0.8) rotateY(-30deg); opacity: 0; }
+    
+    .slide-next-enter { transform: translateX(100%) scale(0.8) rotateY(-30deg); opacity: 0; }
+    .slide-prev-enter { transform: translateX(-100%) scale(0.8) rotateY(30deg); opacity: 0; }
+    
+    @keyframes faceContentIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    .card-face.animate-in {
+      animation: faceContentIn 0.3s 0.3s forwards cubic-bezier(0.4, 0.0, 0.2, 1);
+      opacity: 0;
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <button id="exit-fullscreen" aria-label="Выйти из полноэкранного режима">✕</button>
+
+  <div class="top-bar">
+    <button id="btn-cards" class="active">✨ Карточки</button>
+    <button id="btn-quiz">💡 Тест</button>
+    <div class="separator"></div>
+
+    <div class="controls-group">
+      <button id="btn-parse">📋 Вставить</button>
+      <button id="btn-save">💾 Сохранить</button>
+      <button id="btn-load-file">📥 Загрузить</button>
+      <button id="btn-clear">🗑️ Очистить</button>
+      <button id="btn-reset-all">🔄 Сбросить всё</button>
+    </div>
+    
+    <div style="flex-grow: 1;"></div> 
+    
+    <div class="controls-group">
+      <button id="btn-reverse">🔄 Реверс</button>
+      <button id="btn-manual" class="active">Ручной</button>
+      <button id="btn-auto">Авто</button>
+      <div class="separator"></div>
+      <button id="btn-fullscreen">📺 На весь экран</button>
+      
+      <div class="dropdown" id="settings-dropdown">
+        <button class="dropdown-btn" id="toggle-settings">
+          ⚙️ Настройки
+        </button>
+        <div class="dropdown-content" id="settings-body">
+          <div class="setting-item"><label>Тема</label><select id="theme-select"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></div>
+          <div class="setting-item"><div class="checkbox-group"><input type="checkbox" id="sound-enabled" checked /><label for="sound-enabled">Звуковые эффекты</label></div></div>
+          <div class="setting-item"><div class="checkbox-group"><input type="checkbox" id="persist-enabled" checked /><label for="persist-enabled">Запоминать карточки и настройки</label></div></div>
+          <hr style="border-color: var(--border-color); margin: 10px 0;">
+          <div class="setting-item"><label>Шрифт (вопрос)</label><select id="font-family-front"><option value="system">Системный</option><option value="Arial, sans-serif">Arial</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Courier New', monospace">Courier New</option><option value="'Comic Sans MS', cursive">Comic Sans MS</option><option value="'Georgia', serif">Georgia</option><option value="'Verdana', sans-serif">Verdana</option><option value="'Tahoma', sans-serif">Tahoma</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option><option value="'Palatino', serif">Palatino</option><option value="'Garamond', serif">Garamond</option><option value="'Brush Script MT', cursive">Brush Script</option></select></div>
+          <div class="setting-item"><label>Размер (вопрос)</label><input type="range" id="font-size-front" min="14" max="120" value="28" /></div>
+          <div class="setting-item"><label>Цвет текста (вопрос)</label><input type="color" id="color-text-front" value="#e5e5e5" /></div>
+          <div class="setting-item"><label>Фон (вопрос)</label><input type="color" id="color-bg-front" value="#262626" /></div>
+          <div class="setting-item"><label>Шрифт (ответы)</label><select id="font-family-back"><option value="system">Системный</option><option value="Arial, sans-serif">Arial</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Courier New', monospace">Courier New</option><option value="'Comic Sans MS', cursive">Comic Sans MS</option><option value="'Georgia', serif">Georgia</option><option value="'Verdana', sans-serif">Verdana</option><option value="'Tahoma', sans-serif">Tahoma</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option><option value="'Palatino', serif">Palatino</option><option value="'Garamond', serif">Garamond</option><option value="'Brush Script MT', cursive">Brush Script</option></select></div>
+          <div class="setting-item"><label>Размер (ответы)</label><input type="range" id="font-size-back" min="14" max="120" value="28" /></div>
+          <div class="setting-item"><label>Цвет текста (ответы)</label><input type="color" id="color-text-back" value="#e5e5e5" /></div>
+          <div class="setting-item"><label>Фон (ответы)</label><input type="color" id="color-bg-back" value="#373737" /></div>
+          <div class="setting-item"><label>Авто: время до ответа (сек)</label><input type="number" id="time-front" min="1" max="30" value="3" /></div>
+          <div class="setting-item"><label>Авто: интервал (сек)</label><input type="number" id="interval" min="2" max="60" value="6" /></div>
+          <div class="setting-item"><label>Тест: лимит времени (сек)</label><input type="number" id="quiz-time-limit" min="5" max="120" value="15" /></div>
+          <div class="setting-item"><div class="checkbox-group"><input type="checkbox" id="quiz-auto-reveal" /><label for="quiz-auto-reveal">Тест: показывать правильный ответ</label></div></div>
+          <div class="setting-item"><div class="checkbox-group"><input type="checkbox" id="tts-enabled" /><label for="tts-enabled">Озвучка (TTS)</label></div></div>
+          <div class="setting-item"><label>Озвучивать</label><select id="tts-mode"><option value="front">Вопрос</option><option value="back">Ответ</option><option value="both">Оба</option></select></div>
+          <hr style="border-color: var(--border-color); margin: 10px 0;">
+          <button id="btn-reset-all-settings" style="width:100%;background:#ef4444;color:white;border:none;padding:8px;border-radius:8px;">⚠️ Сбросить настройки</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dropdown" id="burger-menu">
+    <button class="dropdown-btn" id="burger-menu-btn" style="font-size: 24px;">
+      ☰
+    </button>
+    <div class="dropdown-content" id="burger-menu-body">
+      <h4>Меню</h4>
+      <hr style="border-color: var(--border-color); margin: 10px 0;">
+      <button class="burger-item" id="burger-btn-save">💾 Сохранить данные</button>
+      <button class="burger-item" id="burger-btn-load-file">📥 Загрузить файл</button>
+      <button class="burger-item" id="burger-btn-clear">🗑️ Очистить все</button>
+      <button class="burger-item" id="burger-btn-reset-all">🔄 Сбросить всё</button>
+      <hr style="border-color: var(--border-color); margin: 10px 0;">
+      <button class="burger-item" id="burger-btn-reverse">🔄 Реверс (Вопрос/Ответ)</button>
+      <button class="burger-item" id="burger-btn-manual">Ручной режим</button>
+      <button class="burger-item" id="burger-btn-auto">Авто режим</button>
+      <button class="burger-item" id="burger-btn-fullscreen">📺 На весь экран</button>
+      <hr style="border-color: var(--border-color); margin: 10px 0;">
+      <button class="burger-item" id="burger-btn-sound">🔊 Звук Вкл</button>
+      <button class="burger-item" id="burger-btn-settings">⚙️ Настройки</button>
+    </div>
+  </div>
+  
+  <div class="main-content-wrapper">
+    <div id="input-section">
+      <textarea id="input-text" placeholder="Формат: слово :: перевод. Каждая пара на новой строке.&#10;Пример: book :: книга&#10;pen; ручка"></textarea>
+    </div>
+
+    <div id="flashcard-container">
+      <div class="card-wrapper">
+        <div id="card-progress">0 / 0</div>
+        <div class="card" id="card">
+          <div class="card-face card-front" id="front">Начните с вставки слов!</div>
+          <div class="card-face card-back" id="back">—</div>
+          <button class="tts-button" id="tts-front">🔊</button>
+          <button class="tts-button" id="tts-back">🔊</button>
+        </div>
+      </div>
+      <div id="fullscreen-card-counter" class="fullscreen-counter hidden">0 / 0</div>
+    </div>
+
+    <div class="card-controls" id="card-controls">
+      <button id="btn-prev">← Назад</button>
+      <button id="btn-flip">Показать ответ</button>
+      <button id="btn-next">Далее →</button>
+    </div>
+    
+    <div id="quiz-container" class="hidden">
+      <div class="quiz-container">
+        <div class="quiz-info-bar">
+          <div class="quiz-progress" id="quiz-progress">0 / 0</div>
+          <div class="quiz-timer" id="quiz-timer">--</div>
+        </div>
+        <div class="word" id="quiz-word">
+          <button class="tts-button" id="tts-quiz">🔊</button>
+        </div>
+        <div class="options" id="quiz-options"></div>
+        <div class="feedback" id="quiz-feedback" style="margin-top:15px;font-weight:500"></div>
+        <button class="next-btn" id="quiz-next" style="margin-top:20px;padding:12px 24px;background:#3b82f6;color:white;border:none;border-radius:12px;display:none">Следующий</button>
+      </div>
+      <div id="fullscreen-quiz-counter" class="fullscreen-counter hidden">0 / 0</div>
+    </div>
+  </div>
+
+  <div id="format-selector">
+    <div id="format-selector-content">
+      <h3>Выберите формат сохранения</h3>
+      <div class="format-option" data-format="::">word :: translation</div>
+      <div class="format-option" data-format=";">word; translation</div>
+      <div class="format-option" data-format="=">word = translation</div>
+      <div class="format-option" data-format="→">word → translation</div>
+      <div class="format-option" data-format="—">word — translation</div>
+      <div class="format-option" data-format="csv">Скачать как CSV</div>
+    </div>
+  </div>
+
+  <input type="file" id="file-input" accept=".txt,.csv" style="display:none">
+  <audio id="audio-swipe" src="audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="></audio>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const state = {
+        cards: [],
+        quizCards: [],
+        mode: 'cards',
+        currentIndex: 0,
+        currentQuizIndex: 0,
+        isFlipped: false,
+        autoMode: 'manual',
+        reverseMode: false,
+        ttsEnabled: false,
+        ttsMode: 'front',
+        quizTimeLimit: 15,
+        quizAutoReveal: false,
+        soundEnabled: true,
+        persistEnabled: true,
+        isAnimating: false,
+        timers: {
+          auto: null,
+          flip: null,
+          quiz: null,
+          quizCountdown: null
+        }
+      };
+
+      const dom = {
+        body: document.body,
+        inputText: document.getElementById('input-text'),
+        frontEl: document.getElementById('front'),
+        backEl: document.getElementById('back'),
+        cardEl: document.getElementById('card'),
+        cardWrapper: document.querySelector('.card-wrapper'),
+        quizContainer: document.getElementById('quiz-container'),
+        flashcardContainer: document.getElementById('flashcard-container'),
+        quizTimerEl: document.getElementById('quiz-timer'),
+        cardControls: document.getElementById('card-controls'),
+        quizWord: document.getElementById('quiz-word'),
+        quizOptions: document.getElementById('quiz-options'),
+        quizFeedback: document.getElementById('quiz-feedback'),
+        quizNext: document.querySelector('#quiz-next'),
+        cardProgress: document.getElementById('card-progress'),
+        quizProgress: document.getElementById('quiz-progress'),
+        fullscreenCardCounter: document.getElementById('fullscreen-card-counter'),
+        fullscreenQuizCounter: document.getElementById('fullscreen-quiz-counter'),
+        fileInput: document.getElementById('file-input'),
+        formatSelector: document.getElementById('format-selector'),
+        formatOptions: document.querySelectorAll('.format-option'),
+        btnCards: document.getElementById('btn-cards'),
+        btnQuiz: document.getElementById('btn-quiz'),
+        btnFullscreen: document.getElementById('btn-fullscreen'),
+        btnParse: document.getElementById('btn-parse'),
+        btnSave: document.getElementById('btn-save'),
+        btnLoadFile: document.getElementById('btn-load-file'),
+        btnClear: document.getElementById('btn-clear'),
+        btnResetAll: document.getElementById('btn-reset-all'),
+        btnReverse: document.getElementById('btn-reverse'),
+        btnPrev: document.getElementById('btn-prev'),
+        btnFlip: document.getElementById('btn-flip'),
+        btnNext: document.getElementById('btn-next'),
+        btnManual: document.getElementById('btn-manual'),
+        btnAuto: document.getElementById('btn-auto'),
+        exitFullscreenBtn: document.getElementById('exit-fullscreen'),
+        settingsDropdown: document.getElementById('settings-dropdown'),
+        toggleSettingsBtn: document.getElementById('toggle-settings'),
+        settingsBody: document.getElementById('settings-body'),
+        themeSelect: document.getElementById('theme-select'),
+        fontFamilyFront: document.getElementById('font-family-front'),
+        fontSizeFront: document.getElementById('font-size-front'),
+        colorTextFront: document.getElementById('color-text-front'),
+        colorBgFront: document.getElementById('color-bg-front'),
+        fontFamilyBack: document.getElementById('font-family-back'),
+        fontSizeBack: document.getElementById('font-size-back'),
+        colorTextBack: document.getElementById('color-text-back'),
+        colorBgBack: document.getElementById('color-bg-back'),
+        timeFront: document.getElementById('time-front'),
+        interval: document.getElementById('interval'),
+        quizTimeLimit: document.getElementById('quiz-time-limit'),
+        quizAutoReveal: document.getElementById('quiz-auto-reveal'),
+        ttsEnabledCheckbox: document.getElementById('tts-enabled'),
+        ttsModeSelect: document.getElementById('tts-mode'),
+        soundEnabledCheckbox: document.getElementById('sound-enabled'),
+        persistEnabledCheckbox: document.getElementById('persist-enabled'),
+        btnResetAllSettings: document.getElementById('btn-reset-all-settings'),
+        ttsFrontBtn: document.getElementById('tts-front'),
+        ttsBackBtn: document.getElementById('tts-back'),
+        ttsQuizBtn: document.getElementById('tts-quiz'),
+        burgerMenu: document.getElementById('burger-menu'),
+        burgerMenuBtn: document.getElementById('burger-menu-btn'),
+        burgerMenuBody: document.getElementById('burger-menu-body'),
+        burgerBtnSave: document.getElementById('burger-btn-save'),
+        burgerBtnLoadFile: document.getElementById('burger-btn-load-file'),
+        burgerBtnClear: document.getElementById('burger-btn-clear'),
+        burgerBtnResetAll: document.getElementById('burger-btn-reset-all'),
+        burgerBtnReverse: document.getElementById('burger-btn-reverse'),
+        burgerBtnManual: document.getElementById('burger-btn-manual'),
+        burgerBtnAuto: document.getElementById('burger-btn-auto'),
+        burgerBtnFullscreen: document.getElementById('burger-btn-fullscreen'),
+        burgerBtnSettings: document.getElementById('burger-btn-settings'),
+        burgerBtnSound: document.getElementById('burger-btn-sound'),
+        audioSwipe: document.getElementById('audio-swipe')
+      };
+
+      const Utils = {
+        isRTL: (text) => {
+          if (!text) return false;
+          const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+          return rtlRegex.test(text);
+        },
+        shuffleArray: (array) => {
+          const arr = [...array];
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+          return arr;
+        },
+        playSound: () => {
+          if (state.soundEnabled && dom.audioSwipe) {
+            try {
+              dom.audioSwipe.currentTime = 0;
+              dom.audioSwipe.play().catch(() => {});
+            } catch (e) {}
+          }
+        },
+        speak: (text, lang = 'ru') => {
+          if (!state.ttsEnabled || !('speechSynthesis' in window)) return;
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = lang;
+          utterance.rate = 0.9;
+          speechSynthesis.speak(utterance);
+        }
+      };
+
+      // 🔑 === localStorage: ЗАГРУЗКА ===
+      const loadFromStorage = () => {
+        if (!state.persistEnabled) return;
+
+        try {
+          // 1. Карточки и текст
+          const savedText = localStorage.getItem('memoria.inputText');
+          if (savedText !== null) {
+            dom.inputText.value = savedText;
+          }
+
+          // 2. Настройки
+          const settings = JSON.parse(localStorage.getItem('memoria.settings') || '{}');
+          
+          if (settings.theme) dom.themeSelect.value = settings.theme;
+          if (settings.soundEnabled !== undefined) dom.soundEnabledCheckbox.checked = settings.soundEnabled;
+          if (settings.persistEnabled !== undefined) dom.persistEnabledCheckbox.checked = settings.persistEnabled;
+          if (settings.ttsEnabled !== undefined) dom.ttsEnabledCheckbox.checked = settings.ttsEnabled;
+          if (settings.ttsMode) dom.ttsModeSelect.value = settings.ttsMode;
+          if (settings.quizAutoReveal !== undefined) dom.quizAutoReveal.checked = settings.quizAutoReveal;
+          if (settings.fontFamilyFront) dom.fontFamilyFront.value = settings.fontFamilyFront;
+          if (settings.fontSizeFront) dom.fontSizeFront.value = settings.fontSizeFront;
+          if (settings.colorTextFront) dom.colorTextFront.value = settings.colorTextFront;
+          if (settings.colorBgFront) dom.colorBgFront.value = settings.colorBgFront;
+          if (settings.fontFamilyBack) dom.fontFamilyBack.value = settings.fontFamilyBack;
+          if (settings.fontSizeBack) dom.fontSizeBack.value = settings.fontSizeBack;
+          if (settings.colorTextBack) dom.colorTextBack.value = settings.colorTextBack;
+          if (settings.colorBgBack) dom.colorBgBack.value = settings.colorBgBack;
+          if (settings.timeFront) dom.timeFront.value = settings.timeFront;
+          if (settings.interval) dom.interval.value = settings.interval;
+          if (settings.quizTimeLimit) dom.quizTimeLimit.value = settings.quizTimeLimit;
+
+          // Применить тему
+          dom.body.classList.toggle('theme-dark', dom.themeSelect.value === 'dark');
+          dom.body.classList.toggle('theme-light', dom.themeSelect.value === 'light');
+
+          // Синхронизировать состояние
+          state.soundEnabled = dom.soundEnabledCheckbox.checked;
+          state.persistEnabled = dom.persistEnabledCheckbox.checked;
+          state.ttsEnabled = dom.ttsEnabledCheckbox.checked;
+          state.ttsMode = dom.ttsModeSelect.value;
+          state.quizAutoReveal = dom.quizAutoReveal.checked;
+
+          Renderer.applyStyles();
+        } catch (e) {
+          console.warn('⚠️ Не удалось загрузить настройки из localStorage:', e);
+        }
+      };
+
+      // 🔑 === localStorage: СОХРАНЕНИЕ ===
+      const saveToStorage = () => {
+        if (!state.persistEnabled) return;
+
+        try {
+          // Текстовое поле
+          localStorage.setItem('memoria.inputText', dom.inputText.value);
+
+          // Настройки
+          const settings = {
+            theme: dom.themeSelect.value,
+            soundEnabled: dom.soundEnabledCheckbox.checked,
+            persistEnabled: dom.persistEnabledCheckbox.checked,
+            ttsEnabled: dom.ttsEnabledCheckbox.checked,
+            ttsMode: dom.ttsModeSelect.value,
+            quizAutoReveal: dom.quizAutoReveal.checked,
+            fontFamilyFront: dom.fontFamilyFront.value,
+            fontSizeFront: dom.fontSizeFront.value,
+            colorTextFront: dom.colorTextFront.value,
+            colorBgFront: dom.colorBgFront.value,
+            fontFamilyBack: dom.fontFamilyBack.value,
+            fontSizeBack: dom.fontSizeBack.value,
+            colorTextBack: dom.colorTextBack.value,
+            colorBgBack: dom.colorBgBack.value,
+            timeFront: dom.timeFront.value,
+            interval: dom.interval.value,
+            quizTimeLimit: dom.quizTimeLimit.value
+          };
+          localStorage.setItem('memoria.settings', JSON.stringify(settings));
+        } catch (e) {
+          console.warn('⚠️ Не удалось сохранить в localStorage:', e);
+        }
+      };
+
+      const Parser = {
+        parseInput: (text) => {
+          const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line);
+          const cards = [];
+
+          for (let line of lines) {
+            let front = '', back = '';
+
+            if (line.includes(',') && (line.startsWith('"') || line.includes('","'))) {
+              const csvParts = [];
+              let current = '';
+              let inQuotes = false;
+              for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"' && (i === 0 || line[i - 1] !== '\\')) {
+                  inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                  csvParts.push(current.trim());
+                  current = '';
+                } else {
+                  current += char;
+                }
+              }
+              csvParts.push(current.trim());
+              if (csvParts.length >= 2) {
+                front = csvParts[0].replace(/\\"/g, '"').replace(/^"|"$/g, '');
+                back = csvParts[1].replace(/\\"/g, '"').replace(/^"|"$/g, '');
+              }
+            }
+
+            if (!front || !back) {
+              const separators = [
+                { sep: '::', regex: /::/ },
+                { sep: '—', regex: /\u2014/ },
+                { sep: '–', regex: /\u2013/ },
+                { sep: '=', regex: /=/ },
+                { sep: '\t', regex: /\t/ }
+              ];
+              for (const { sep, regex } of separators) {
+                if (regex.test(line)) {
+                  const parts = line.split(regex).map(s => s.trim());
+                  if (parts.length >= 2) {
+                    front = parts[0];
+                    back = parts.slice(1).join(sep).trim();
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (!front || !back) {
+              const parts = line.split(/\s+/);
+              if (parts.length >= 2) {
+                front = parts[0];
+                back = parts.slice(1).join(' ');
+              }
+            }
+
+            if (front && back) {
+              front = front.replace(/[\uFEFF\u200B\u200C\u202A-\u202E]/g, '').trim();
+              back = back.replace(/[\uFEFF\u200B\u200C\u202A-\u202E]/g, '').trim();
+              cards.push({ front, back });
+            }
+          }
+          return cards;
+        }
+      };
+
+      const Renderer = {
+        updateCard: () => {
+          if (state.cards.length === 0) {
+            dom.frontEl.textContent = 'Начните с вставки слов!';
+            dom.backEl.textContent = '—';
+            dom.cardProgress.textContent = '0 / 0';
+            dom.fullscreenCardCounter.textContent = '0 / 0';
+            return;
+          }
+
+          const card = state.cards[state.currentIndex];
+          const front = state.reverseMode ? card.back : card.front;
+          const back = state.reverseMode ? card.front : card.back;
+
+          dom.frontEl.textContent = front;
+          dom.backEl.textContent = back;
+
+          dom.cardProgress.textContent = `${state.currentIndex + 1} / ${state.cards.length}`;
+          dom.fullscreenCardCounter.textContent = dom.cardProgress.textContent;
+
+          dom.frontEl.style.direction = Utils.isRTL(front) ? 'rtl' : 'ltr';
+          dom.backEl.style.direction = Utils.isRTL(back) ? 'rtl' : 'ltr';
+
+          dom.ttsFrontBtn.classList.toggle('visible', state.ttsEnabled);
+          dom.ttsBackBtn.classList.toggle('visible', state.ttsEnabled && state.isFlipped);
+        },
+
+        updateQuiz: () => {
+          if (state.quizCards.length === 0) {
+            dom.quizWord.textContent = 'Нет карточек для теста!';
+            dom.quizOptions.innerHTML = '';
+            dom.quizProgress.textContent = '0 / 0';
+            dom.fullscreenQuizCounter.textContent = '0 / 0';
+            return;
+          }
+
+          const quizCard = state.quizCards[state.currentQuizIndex];
+          const question = state.reverseMode ? quizCard.back : quizCard.front;
+          dom.quizWord.textContent = question;
+          dom.quizWord.style.direction = Utils.isRTL(question) ? 'rtl' : 'ltr';
+          dom.ttsQuizBtn.classList.toggle('visible', state.ttsEnabled);
+
+          const allBacks = state.quizCards.map(c => state.reverseMode ? c.front : c.back);
+          let options = [allBacks[state.currentQuizIndex]];
+          while (options.length < 4 && options.length < allBacks.length) {
+            const rand = allBacks[Math.floor(Math.random() * allBacks.length)];
+            if (!options.includes(rand)) options.push(rand);
+          }
+          options = Utils.shuffleArray(options);
+
+          dom.quizOptions.innerHTML = '';
+          options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.textContent = opt;
+            btn.style.direction = Utils.isRTL(opt) ? 'rtl' : 'ltr';
+            btn.onclick = () => handleQuizAnswer(opt, quizCard);
+            dom.quizOptions.appendChild(btn);
+          });
+
+          dom.quizProgress.textContent = `${state.currentQuizIndex + 1} / ${state.quizCards.length}`;
+          dom.fullscreenQuizCounter.textContent = dom.quizProgress.textContent;
+          startQuizTimer();
+        },
+
+        applyStyles: () => {
+          const frontFont = dom.fontFamilyFront.value === 'system' ? 'inherit' : dom.fontFamilyFront.value;
+          const backFont = dom.fontFamilyBack.value === 'system' ? 'inherit' : dom.fontFamilyBack.value;
+
+          dom.frontEl.style.fontFamily = frontFont;
+          dom.backEl.style.fontFamily = backFont;
+          dom.frontEl.style.fontSize = `${dom.fontSizeFront.value}px`;
+          dom.backEl.style.fontSize = `${dom.fontSizeBack.value}px`;
+          dom.frontEl.style.color = dom.colorTextFront.value;
+          dom.backEl.style.color = dom.colorTextBack.value;
+          dom.frontEl.closest('.card-face').style.backgroundColor = dom.colorBgFront.value;
+          dom.backEl.closest('.card-face').style.backgroundColor = dom.colorBgBack.value;
+        }
+      };
+
+      const handleQuizAnswer = (selected, correctCard) => {
+        if (state.timers.quizCountdown) clearInterval(state.timers.quizCountdown);
+        const isCorrect = selected === (state.reverseMode ? correctCard.front : correctCard.back);
+        const options = document.querySelectorAll('.option');
+        options.forEach(opt => {
+          opt.disabled = true;
+          if (opt.textContent === (state.reverseMode ? correctCard.front : correctCard.back)) {
+            opt.classList.add('correct');
+          } else if (opt.textContent === selected && !isCorrect) {
+            opt.classList.add('incorrect');
+          }
+        });
+
+        if (isCorrect) {
+          dom.quizFeedback.textContent = '✅ Верно!';
+          dom.quizFeedback.style.color = '#10b981';
+        } else {
+          dom.quizFeedback.textContent = `❌ Неверно. Правильно: ${(state.reverseMode ? correctCard.front : correctCard.back)}`;
+          dom.quizFeedback.style.color = '#ef4444';
+        }
+        dom.quizFeedback.style.display = 'block';
+
+        if (state.quizAutoReveal) {
+          setTimeout(() => {
+            dom.quizNext.style.display = 'block';
+          }, 1500);
+        } else {
+          dom.quizNext.style.display = 'block';
+        }
+      };
+
+      const startQuizTimer = () => {
+        let timeLeft = parseInt(dom.quizTimeLimit.value) || 15;
+        dom.quizTimerEl.textContent = timeLeft;
+        dom.quizTimerEl.classList.remove('critical');
+
+        if (state.timers.quizCountdown) clearInterval(state.timers.quizCountdown);
+
+        state.timers.quizCountdown = setInterval(() => {
+          timeLeft--;
+          dom.quizTimerEl.textContent = timeLeft;
+          if (timeLeft <= 5) dom.quizTimerEl.classList.add('critical');
+          if (timeLeft <= 0) {
+            clearInterval(state.timers.quizCountdown);
+            const correct = state.quizCards[state.currentQuizIndex];
+            const correctAns = state.reverseMode ? correct.front : correct.back;
+            dom.quizFeedback.textContent = `⏳ Время вышло. Правильно: ${correctAns}`;
+            dom.quizFeedback.style.color = '#f59e0b';
+            dom.quizFeedback.style.display = 'block';
+            document.querySelectorAll('.option').forEach(btn => btn.disabled = true);
+            dom.quizNext.style.display = 'block';
+          }
+        }, 1000);
+      };
+
+      const flipCard = () => {
+        if (state.isAnimating) return;
+        state.isFlipped = !state.isFlipped;
+        dom.cardEl.classList.toggle('flipped', state.isFlipped);
+        if (state.isFlipped && state.ttsEnabled && (state.ttsMode === 'back' || state.ttsMode === 'both')) {
+          const card = state.cards[state.currentIndex];
+          const text = state.reverseMode ? card.front : card.back;
+          Utils.speak(text);
+        }
+      };
+
+      const nextCard = () => {
+        if (state.isAnimating) return;
+        state.isAnimating = true;
+        dom.cardEl.classList.add('slide-next-exit');
+
+        setTimeout(() => {
+          state.currentIndex = (state.currentIndex + 1) % state.cards.length;
+          state.isFlipped = false;
+          dom.cardEl.classList.remove('flipped', 'slide-next-exit');
+          Renderer.updateCard();
+          dom.cardEl.classList.add('slide-next-enter');
+          setTimeout(() => {
+            dom.cardEl.classList.remove('slide-next-enter');
+            state.isAnimating = false;
+          }, 300);
+        }, 300);
+        Utils.playSound();
+      };
+
+      const prevCard = () => {
+        if (state.isAnimating) return;
+        state.isAnimating = true;
+        dom.cardEl.classList.add('slide-prev-exit');
+
+        setTimeout(() => {
+          state.currentIndex = (state.currentIndex - 1 + state.cards.length) % state.cards.length;
+          state.isFlipped = false;
+          dom.cardEl.classList.remove('flipped', 'slide-prev-exit');
+          Renderer.updateCard();
+          dom.cardEl.classList.add('slide-prev-enter');
+          setTimeout(() => {
+            dom.cardEl.classList.remove('slide-prev-enter');
+            state.isAnimating = false;
+          }, 300);
+        }, 300);
+        Utils.playSound();
+      };
+
+      const startAutoMode = () => {
+        if (state.autoMode !== 'auto' || state.cards.length === 0) return;
+        stopAutoMode();
+
+        state.timers.auto = setInterval(() => {
+          if (!state.isFlipped) {
+            state.timers.flip = setTimeout(flipCard, parseInt(dom.timeFront.value) * 1000);
+          } else {
+            setTimeout(nextCard, parseInt(dom.interval.value) * 1000);
+          }
+        }, (parseInt(dom.timeFront.value) + parseInt(dom.interval.value)) * 1000);
+      };
+
+      const stopAutoMode = () => {
+        if (state.timers.auto) clearInterval(state.timers.auto);
+        if (state.timers.flip) clearTimeout(state.timers.flip);
+      };
+
+      // === СОБЫТИЯ ===
+      dom.btnParse.addEventListener('click', () => {
+        state.cards = Parser.parseInput(dom.inputText.value);
+        state.quizCards = Utils.shuffleArray([...state.cards]);
+        state.currentIndex = 0;
+        state.currentQuizIndex = 0;
+        state.isFlipped = false;
+        dom.cardEl.classList.remove('flipped');
+        Renderer.updateCard();
+        Renderer.updateQuiz();
+        saveToStorage();
+      });
+
+      dom.btnFlip.addEventListener('click', flipCard);
+      dom.cardEl.addEventListener('click', flipCard);
+      dom.btnNext.addEventListener('click', nextCard);
+      dom.btnPrev.addEventListener('click', prevCard);
+
+      dom.btnCards.addEventListener('click', () => {
+        state.mode = 'cards';
+        dom.btnCards.classList.add('active');
+        dom.btnQuiz.classList.remove('active');
+        dom.quizContainer.classList.add('hidden');
+        dom.flashcardContainer.classList.remove('hidden');
+        dom.cardControls.classList.remove('hidden');
+      });
+
+      dom.btnQuiz.addEventListener('click', () => {
+        if (state.cards.length === 0) {
+          alert('Сначала вставьте карточки!');
+          return;
+        }
+        state.mode = 'quiz';
+        dom.btnQuiz.classList.add('active');
+        dom.btnCards.classList.remove('active');
+        dom.flashcardContainer.classList.add('hidden');
+        dom.quizContainer.classList.remove('hidden');
+        dom.cardControls.classList.add('hidden');
+        state.currentQuizIndex = 0;
+        Renderer.updateQuiz();
+      });
+
+      dom.quizNext.addEventListener('click', () => {
+        dom.quizFeedback.style.display = 'none';
+        dom.quizNext.style.display = 'none';
+        state.currentQuizIndex = (state.currentQuizIndex + 1) % state.quizCards.length;
+        Renderer.updateQuiz();
+      });
+
+      dom.btnManual.addEventListener('click', () => {
+        state.autoMode = 'manual';
+        dom.btnManual.classList.add('active');
+        dom.btnAuto.classList.remove('active');
+        stopAutoMode();
+      });
+
+      dom.btnAuto.addEventListener('click', () => {
+        state.autoMode = 'auto';
+        dom.btnAuto.classList.add('active');
+        dom.btnManual.classList.remove('active');
+        stopAutoMode();
+        startAutoMode();
+      });
+
+      dom.btnReverse.addEventListener('click', () => {
+        state.reverseMode = !state.reverseMode;
+        Renderer.updateCard();
+        Renderer.updateQuiz();
+      });
+
+      dom.btnClear.addEventListener('click', () => {
+        if (confirm('Очистить все карточки?')) {
+          dom.inputText.value = '';
+          state.cards = [];
+          state.quizCards = [];
+          state.currentIndex = 0;
+          Renderer.updateCard();
+          saveToStorage();
+        }
+      });
+
+      dom.btnResetAll.addEventListener('click', () => {
+        if (confirm('Сбросить ВСЁ — карточки, настройки, сохранённые данные?')) {
+          dom.inputText.value = '';
+          state.cards = [];
+          state.quizCards = [];
+          state.currentIndex = 0;
+          Renderer.updateCard();
+
+          // Сброс настроек к дефолту
+          dom.themeSelect.value = 'dark';
+          dom.body.classList.add('theme-dark');
+          dom.body.classList.remove('theme-light');
+
+          dom.soundEnabledCheckbox.checked = true;
+          dom.persistEnabledCheckbox.checked = true;
+          dom.ttsEnabledCheckbox.checked = false;
+          dom.ttsModeSelect.value = 'front';
+          dom.quizAutoReveal.checked = false;
+
+          dom.fontFamilyFront.value = 'system';
+          dom.fontSizeFront.value = '28';
+          dom.colorTextFront.value = '#e5e5e5';
+          dom.colorBgFront.value = '#262626';
+
+          dom.fontFamilyBack.value = 'system';
+          dom.fontSizeBack.value = '28';
+          dom.colorTextBack.value = '#e5e5e5';
+          dom.colorBgBack.value = '#373737';
+
+          dom.timeFront.value = '3';
+          dom.interval.value = '6';
+          dom.quizTimeLimit.value = '15';
+
+          Renderer.applyStyles();
+
+          // Очистить localStorage
+          localStorage.removeItem('memoria.inputText');
+          localStorage.removeItem('memoria.settings');
+
+          state.soundEnabled = true;
+          state.persistEnabled = true;
+          state.ttsEnabled = false;
+          state.ttsMode = 'front';
+          state.quizAutoReveal = false;
+
+          dom.burgerBtnSound.textContent = '🔊 Звук Вкл';
+
+          // Обновить интерфейс
+          saveToStorage();
+        }
+      });
+
+      dom.btnResetAllSettings.addEventListener('click', () => {
+        if (confirm('Сбросить настройки к заводским?')) {
+          dom.themeSelect.value = 'dark';
+          dom.body.classList.add('theme-dark');
+          dom.body.classList.remove('theme-light');
+
+          dom.soundEnabledCheckbox.checked = true;
+          dom.persistEnabledCheckbox.checked = true;
+          dom.ttsEnabledCheckbox.checked = false;
+          dom.ttsModeSelect.value = 'front';
+          dom.quizAutoReveal.checked = false;
+
+          dom.fontFamilyFront.value = 'system';
+          dom.fontSizeFront.value = '28';
+          dom.colorTextFront.value = '#e5e5e5';
+          dom.colorBgFront.value = '#262626';
+
+          dom.fontFamilyBack.value = 'system';
+          dom.fontSizeBack.value = '28';
+          dom.colorTextBack.value = '#e5e5e5';
+          dom.colorBgBack.value = '#373737';
+
+          dom.timeFront.value = '3';
+          dom.interval.value = '6';
+          dom.quizTimeLimit.value = '15';
+
+          Renderer.applyStyles();
+
+          state.soundEnabled = true;
+          state.persistEnabled = true;
+          state.ttsEnabled = false;
+          state.ttsMode = 'front';
+          state.quizAutoReveal = false;
+
+          dom.burgerBtnSound.textContent = '🔊 Звук Вкл';
+
+          saveToStorage();
+        }
+      });
+
+      dom.btnSave.addEventListener('click', () => {
+        dom.formatSelector.style.display = 'flex';
+      });
+
+      dom.formatOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+          const format = opt.getAttribute('data-format');
+          dom.formatSelector.style.display = 'none';
+
+          let content = '';
+          if (format === 'csv') {
+            content = 'front,back\n' + state.cards.map(c => `"${c.front.replace(/"/g, '""')}","${c.back.replace(/"/g, '""')}"`).join('\n');
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'flashcards.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+          } else {
+            content = state.cards.map(c => `${c.front} ${format} ${c.back}`).join('\n');
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `flashcards_${format}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        });
+      });
+
+      dom.btnFullscreen.addEventListener('click', () => {
+        dom.body.classList.add('pseudo-fullscreen');
+      });
+
+      dom.exitFullscreenBtn.addEventListener('click', () => {
+        dom.body.classList.remove('pseudo-fullscreen');
+      });
+
+      dom.toggleSettingsBtn.addEventListener('click', () => {
+        dom.settingsBody.classList.toggle('show');
+      });
+
+      dom.themeSelect.addEventListener('change', () => {
+        dom.body.classList.toggle('theme-dark', dom.themeSelect.value === 'dark');
+        dom.body.classList.toggle('theme-light', dom.themeSelect.value === 'light');
+        saveToStorage();
+      });
+
+      dom.soundEnabledCheckbox.addEventListener('change', () => {
+        state.soundEnabled = dom.soundEnabledCheckbox.checked;
+        dom.burgerBtnSound.textContent = state.soundEnabled ? '🔊 Звук Вкл' : '🔇 Звук Выкл';
+        saveToStorage();
+      });
+
+      dom.persistEnabledCheckbox.addEventListener('change', () => {
+        state.persistEnabled = dom.persistEnabledCheckbox.checked;
+        if (!state.persistEnabled) {
+          localStorage.removeItem('memoria.inputText');
+          localStorage.removeItem('memoria.settings');
+        }
+        saveToStorage();
+      });
+
+      dom.ttsEnabledCheckbox.addEventListener('change', () => {
+        state.ttsEnabled = dom.ttsEnabledCheckbox.checked;
+        saveToStorage();
+      });
+
+      dom.ttsModeSelect.addEventListener('change', () => {
+        state.ttsMode = dom.ttsModeSelect.value;
+        saveToStorage();
+      });
+
+      dom.quizTimeLimit.addEventListener('change', () => {
+        state.quizTimeLimit = parseInt(dom.quizTimeLimit.value) || 15;
+        saveToStorage();
+      });
+
+      dom.quizAutoReveal.addEventListener('change', () => {
+        state.quizAutoReveal = dom.quizAutoReveal.checked;
+        saveToStorage();
+      });
+
+      // 🔑 Восстановлены ВСЕ слушатели для настроек
+      [
+        dom.fontFamilyFront, dom.fontSizeFront, dom.colorTextFront, dom.colorBgFront,
+        dom.fontFamilyBack, dom.fontSizeBack, dom.colorTextBack, dom.colorBgBack,
+        dom.timeFront, dom.interval
+      ].forEach(el => {
+        el.addEventListener('input', () => {
+          Renderer.applyStyles();
+          saveToStorage();
+        });
+      });
+
+      dom.ttsFrontBtn.addEventListener('click', () => {
+        if (state.ttsEnabled) {
+          const card = state.cards[state.currentIndex];
+          const text = state.reverseMode ? card.back : card.front;
+          Utils.speak(text);
+        }
+      });
+
+      dom.ttsBackBtn.addEventListener('click', () => {
+        if (state.ttsEnabled) {
+          const card = state.cards[state.currentIndex];
+          const text = state.reverseMode ? card.front : card.back;
+          Utils.speak(text);
+        }
+      });
+
+      dom.ttsQuizBtn.addEventListener('click', () => {
+        if (state.ttsEnabled && state.quizCards.length > 0) {
+          const card = state.quizCards[state.currentQuizIndex];
+          const text = state.reverseMode ? card.back : card.front;
+          Utils.speak(text);
+        }
+      });
+
+      dom.burgerMenuBtn.addEventListener('click', () => {
+        dom.burgerMenuBody.classList.toggle('show');
+      });
+
+      dom.burgerBtnSave.addEventListener('click', () => dom.btnSave.click());
+      dom.burgerBtnLoadFile.addEventListener('click', () => dom.btnLoadFile.click());
+      dom.burgerBtnClear.addEventListener('click', () => dom.btnClear.click());
+      dom.burgerBtnResetAll.addEventListener('click', () => dom.btnResetAll.click());
+      dom.burgerBtnReverse.addEventListener('click', () => dom.btnReverse.click());
+      dom.burgerBtnManual.addEventListener('click', () => dom.btnManual.click());
+      dom.burgerBtnAuto.addEventListener('click', () => dom.btnAuto.click());
+      dom.burgerBtnFullscreen.addEventListener('click', () => dom.btnFullscreen.click());
+      dom.burgerBtnSettings.addEventListener('click', () => dom.settingsBody.classList.add('show'));
+      dom.burgerBtnSound.addEventListener('click', () => {
+        dom.soundEnabledCheckbox.checked = !dom.soundEnabledCheckbox.checked;
+        dom.soundEnabledCheckbox.dispatchEvent(new Event('change'));
+      });
+
+      dom.btnLoadFile.addEventListener('click', () => dom.fileInput.click());
+      dom.fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          dom.inputText.value = reader.result;
+          dom.btnParse.click(); // → вызовет saveToStorage()
+        };
+        reader.readAsText(file, 'utf-8');
+      });
+
+      // 🔑 === ИНИЦИАЛИЗАЦИЯ ===
+      loadFromStorage();
+      dom.btnParse.click();
+    });
+  </script>
+</body>
+</html>
+
